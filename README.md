@@ -1,6 +1,7 @@
 # AI Agent Skills Repository
 
 This repository contains various skills and tools for AI agents, organized in a structured manner to support different capabilities and functionalities.
+These skills are implemented to be used exclusively by AI agents like opencode, Claude code, Codex, ...
 
 ## Overview
 
