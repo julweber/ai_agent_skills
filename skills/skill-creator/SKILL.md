@@ -50,6 +50,9 @@ description: A clear description of what this skill does and when to use it
 
 ## Skill Creation Process
 
+### Step 0: Read the full skill specification
+Read the spec at `references/SKILL_SPECIFICATION.md`
+
 ### Step 1: Understand with Examples
 Gather concrete examples of how the skill will be used. Ask:
 - "What functionality should this skill support?"
@@ -94,4 +97,12 @@ Keep SKILL.md under 500 lines. Split content:
 - CHANGELOG.md
 - User-facing documentation
 
-Skills are for AI agents, not humans.
+## Reference Files
+
+Load on-demand based on task:
+
+| Topic | File | When to Load |
+|-------|------|--------------|
+| Skill Specification | [SKILL_SPECIFICATION.md](references/SKILL_SPECIFICATION.md) | When generating the actual skill implementation |
+
+__Skills are for AI agents, not humans.__

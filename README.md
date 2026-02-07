@@ -1,4 +1,4 @@
-# AI Agent Skills Repository
+# AI Agent Skills and Agents Repository
 
 This repository contains various skills and tools for AI agents, organized in a structured manner to support different capabilities and functionalities.
 These skills are implemented to be used exclusively by AI agents like opencode, Claude code, Codex, ...
@@ -6,6 +6,16 @@ These skills are implemented to be used exclusively by AI agents like opencode, 
 ## Overview
 
 The AI Agent Skills Repository is designed to house modular skill implementations that can be used to extend the capabilities of AI agents. Each skill represents a specific functionality or domain expertise that an agent can leverage.
+
+## Installation
+
+### opencode
+- checkout the repo
+- then symlink the skills sub-directory to the ~/.config/opencode/skills directory
+
+```bash
+ln -s THIS_REPO_ROOT/skills ~/.config/opencode/skills
+```
 
 ## Links 
 
