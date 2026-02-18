@@ -4,9 +4,11 @@ description: Expert guide for creating, configuring, and managing Opencode Agent
 ---
 
 ## Overview
+
 This skill provides the knowledge and procedures to create Opencode Agents. Agents are defined using Markdown files with YAML frontmatter for configuration and the file body for the system prompt.
 
 ## Capabilities
+
 - Create new Primary or Subagents.
 - Configure agent permissions (tools, bash, tasks).
 - Set model parameters (temperature, specific models).
@@ -15,6 +17,7 @@ This skill provides the knowledge and procedures to create Opencode Agents. Agen
 ## Usage
 
 ### 1. Gather Requirements
+
 If the user hasn't provided all details, ask for:
 - **Scope**: Assume **Global** (`~/.config/opencode/agent/`) unless the user explicitly requests "Project" scope.
 - **Name**: What should the agent be called? (e.g., `security-auditor`, `react-expert`)
@@ -23,13 +26,16 @@ If the user hasn't provided all details, ask for:
 - **Tools**: What tools should be enabled/disabled? (e.g., `bash: false`, `write: false`)
 
 ### 2. Construct the Agent File
+
 Create a Markdown file (e.g., `agent-name.md`).
 
 #### File Location
+
 - **Global**: `~/.config/opencode/agent/<agent-name>.md` (Default)
 - **Project**: `.opencode/agent/<agent-name>.md` (Only if requested)
 
 #### File Format
+
 The file MUST start with YAML frontmatter followed by the system prompt.
 
 ```markdown
@@ -59,15 +65,36 @@ Instructions:
 ```
 
 ### 3. Execution
-1.  **Check Directory**: Ensure the target directory exists (`mkdir -p`).
-2.  **Write File**: Use the `write` tool to save the file.
-3.  **Confirm**: Inform the user the agent has been created and how to use it (e.g., "Switch using Tab" or "Invoke via @name").
+
+1. **Check Directory**: Ensure the target directory exists (`mkdir -p`).
+2. **Write File**: Use the `write` tool to save the file.
+3. **Confirm**: Inform the user the agent has been created and how to use it (e.g., "Switch using Tab" or "Invoke via @name").
 
 ## Configuration Reference
 
+### built-in tools in opencode
+
+- bash - Execute shell commands in your project environment
+- edit - Modify existing files using exact string replacements
+- write - Create new files or overwrite existing ones
+- read - Read file contents from your codebase
+- grep - Search file contents using regular expressions
+- glob - Find files by pattern matching
+- list - List files and directories in a given path
+- lsp - Interact with your configured LSP servers to get code intelligence features like definitions, references, hover info, and call hierarchy (experimental)
+- patch - Apply patches to files
+- skill - Load a skill (a SKILL.md file) and return its content in the conversation
+- todowrite - Manage todo lists during coding sessions
+- todoread - Read existing todo lists
+- webfetch - Fetch web content
+- websearch - Search the web for information
+- question - Ask the user questions during execution
+
 ### Permissions
+
 - **Tools**: `edit`, `bash`, `webfetch` can be set to `ask`, `allow`, or `deny`.
 - **Task**: Control which subagents can be called.
+
   ```yaml
   permission:
     task:
@@ -76,6 +103,12 @@ Instructions:
   ```
 
 ### Models
+
 Common overrides:
+
 - Planning: Lower temperature (0.1)
 - Creative: Higher temperature (0.7)
+
+## References
+
+- [Opencode agents documentation](references/opencode-agent-docs.md)
