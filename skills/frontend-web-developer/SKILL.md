@@ -3,7 +3,7 @@ name: frontend-web-developer
 description: Expert frontend developer for Next.js 15/16 App Router, React 19, and Tailwind CSS v4. Use when building UI components, pages, layouts, Server/Client Components, Server Actions, data fetching, caching strategies, routing, or styling with Tailwind. Triggers on any Next.js, React, or Tailwind task.
 license: MIT
 metadata:
-  author: DAK
+  author: Manuel Spörer
   version: 1.0.0
 ---
 
