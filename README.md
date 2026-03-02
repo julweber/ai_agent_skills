@@ -1,7 +1,7 @@
 # AI Agent Skills and Agents Repository
 
 This repository contains various skills and tools for AI agents, organized in a structured manner to support different capabilities and functionalities.
-These skills are implemented to be used exclusively by AI agents like opencode, Claude Code, and other compatible agents.
+These skills are implemented to be used exclusively by AI agents like opencode, Claude Code, pi, and other compatible agents.
 
 ## Overview
 
@@ -15,7 +15,23 @@ It also contains an implementation of the ralph loop for `opencode`. For more in
 
 ## Installation
 
-### opencode
+### Quick Start (Recommended)
+
+Use the provided installation script for an easy, guided experience:
+
+```bash
+# Interactive installation wizard (recommended for first-time users)
+./install-skill.sh --interactive
+
+# Or install all skills for a specific agent
+./install-skill.sh --agent opencode --all
+./install-skill.sh --agent pi --all
+./install-skill.sh --agent claude --all
+```
+
+### Manual Installation
+
+#### opencode
 
 ```bash
 # Clone this repository
@@ -28,6 +44,99 @@ ln -sf "$(pwd)/skills" ~/.config/opencode/skills
 ```
 
 The linked skills will automatically be available to your opencode agent.
+
+#### pi
+
+```bash
+# Clone this repository
+git clone https://github.com/julweber/ai_agent_skills
+cd ai_agent_skills
+
+# Link skills to pi project directory
+mkdir -p .pi/agent/skills
+ln -sf "$(pwd)/skills" .pi/agent/skills
+```
+
+The linked skills will automatically be available to your pi when working within this project. The skills are accessible at `<project_root>/.pi/agent/skills`.
+
+#### claude
+
+```bash
+# Clone this repository
+git clone https://github.com/julweber/ai_agent_skills
+cd ai_agent_skills
+
+# Link skills to Claude config directory
+mkdir -p ~/.claude/skills
+ln -sf "$(pwd)/skills" ~/.claude/skills
+```
+
+The linked skills will automatically be available to your Claude agent.
+
+### Installation Script Reference
+
+The `install-skill.sh` script provides multiple ways to install skills:
+
+#### Basic Usage
+
+```bash
+# Show help and usage information
+./install-skill.sh --help
+
+# List all available skills without installing
+./install-skill.sh --list
+
+# Interactive installation wizard (recommended)
+./install-skill.sh --interactive
+```
+
+#### Installing Specific Skills
+
+```bash
+# Install specific skill(s) for an agent
+./install-skill.sh --agent opencode --skill file-organizer
+./install-skill.sh --agent pi --skill list-large-files list-most-intensive-processes
+
+# Install multiple skills at once
+./install-skill.sh --agent claude --skill terraform ansible brainstorming
+```
+
+#### Installation Modes
+
+```bash
+# Install all available skills (default)
+./install-skill.sh --agent opencode --all
+
+# Use file copy instead of symlinks (for isolated environments or ralph loop)
+./install-skill.sh --agent opencode --all --copy
+
+# Skip confirmation prompts (useful for automation)
+./install-skill.sh --agent pi --skill terraform --force
+
+# Preview installation without executing
+./install-skill.sh --agent opencode --skill file-organizer --dry-run
+```
+
+#### Checking Installation Status
+
+```bash
+# Show which skills are currently installed for an agent
+./install-skill.sh --status --agent opencode
+./install-skill.sh --status --agent pi
+```
+
+#### Supported Agents
+
+| Agent        | Target Directory             | Installation Type         |
+| --------------| ------------------------------| ---------------------------|
+| **opencode** | `~/.config/opencode/skills`  | Symlink (default) or Copy |
+| **pi**       | `<project>/.pi/agent/skills` | Symlink (default) or Copy |
+| **claude**   | `~/.claude/skills`           | Symlink (default) or Copy |
+
+#### Installation Types
+
+- **Symlink (recommended for development)**: Creates symbolic links to the skills repository. Updates are automatically reflected when you update the repository.
+- **Copy installation**: Copies skill files to the target directory. Useful for isolated environments, ralph loop, or when you want to preserve a specific version of skills.
 
 ## Skills Directory Structure
 
