@@ -1,3 +1,6 @@
 .opencode/
 .claude/
 .pi/
+
+node_modules/
+.venv/

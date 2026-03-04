@@ -10,12 +10,15 @@ The repository is organized into:
 - **Skills Directory** (`skills/`): 12+ specialized agent skills for various domains (file organization, system monitoring, documentation generation, infrastructure, testing)
 - **Ralph Loop Implementation** (`ralph/`): Autonomous development loop for `opencode`
 - **Agents Directory** (`agents/`): Agent configuration templates (currently empty)
+- **Extensions Directory** (`extensions/`): Custom tool extensions for AI agents
 
 It also contains an implementation of the ralph loop for `opencode`. For more information on using the ralph loop see [ralph/README.md](ralph/README.md).
 
 ## Installation
 
 ### Quick Start (Recommended)
+
+#### Installing Skills
 
 Use the provided installation script for an easy, guided experience:
 
@@ -27,6 +30,24 @@ Use the provided installation script for an easy, guided experience:
 ./install-skill.sh --agent opencode --all
 ./install-skill.sh --agent pi --all
 ./install-skill.sh --agent claude --all
+```
+
+#### Installing Extensions
+
+For Pi coding agent extensions:
+
+```bash
+# Interactive installation wizard (recommended)
+./install-extension.sh --interactive
+
+# List available extensions without installing
+./install-extension.sh --list
+
+# Install specific extension for pi-coding-agent
+./install-extension.sh --agent fetch-tool
+
+# Install all available extensions
+./install-extension.sh --all
 ```
 
 ### Manual Installation
@@ -138,6 +159,59 @@ The `install-skill.sh` script provides multiple ways to install skills:
 - **Symlink (recommended for development)**: Creates symbolic links to the skills repository. Updates are automatically reflected when you update the repository.
 - **Copy installation**: Copies skill files to the target directory. Useful for isolated environments, ralph loop, or when you want to preserve a specific version of skills.
 
+---
+
+### Extension Installation Script Reference
+
+The `install-extension.sh` script provides guided installation of extensions for the Pi coding agent:
+
+#### Basic Usage
+
+```bash
+# Show help and usage information
+./install-extension.sh --help
+
+# List all available extensions without installing
+./install-extension.sh --list
+
+# Interactive installation wizard (recommended)
+./install-extension.sh --interactive
+```
+
+#### Installing Specific Extensions
+
+```bash
+# Install specific extension(s) for pi-coding-agent
+./install-extension.sh --agent fetch-tool
+
+# Install multiple extensions at once
+./install-extension.sh --agent fetch-tool terraform-extensions
+
+# Install all available extensions
+./install-extension.sh --all
+```
+
+#### Installation Modes
+
+```bash
+# Skip confirmation prompts (useful for automation)
+./install-extension.sh --agent fetch-tool --force
+```
+
+#### Extension Installation Details
+
+- **Target Directory**: Extensions are installed to `~/.pi/agent/extensions/<extension-name>/`
+- **Per-Extension Scripts**: Each extension may include its own `install.sh` script that gets executed during installation
+- **Validation**: Extensions are validated by checking for required `index.ts` file (TypeScript-based)
+- **Supported Agents**: Currently only supports the Pi coding agent (`--agent` parameter is optional as extensions are pi-specific)
+
+#### Installation Types
+
+- **Symlink (recommended)**: Creates symbolic links to the extension repository. Updates are automatically reflected.
+- **Copy installation**: Copies extension files to the target directory. Useful for isolated environments or preserving specific versions.
+
+---
+
 ## Skills Directory Structure
 
 ```
@@ -161,6 +235,14 @@ The `install-skill.sh` script provides multiple ways to install skills:
 │   ├── rest-testssuite/      # REST API testsuites organization and generation
 │   ├── skill-creator/        # Guide for creating new AI agent skills
 │   └── terraform/            # Terraform/OpenTofu guidance, testing, CI/CD, security
+├── extensions/               # Custom tool extensions for AI agents
+│   └── pi/                   # Extensions specifically for the Pi coding agent
+│       ├── fetch-tool/       # Hybrid URL fetching extension with content detection and rendering
+│       │   ├── index.ts      # Main extension entry point with multi-method content handling
+│       │   ├── utils/helpers.ts  # Utility functions for content type detection
+│       │   └── README.md     # Detailed documentation for fetch-tool
+├── install-extension.sh      # Extension installer for Pi coding agent extensions
+├── install-skill.sh          # Skill installer for all supported agents
 └── AGENTS.md                 # Agent development guidelines
 ```
 
@@ -201,6 +283,22 @@ The `install-skill.sh` script provides multiple ways to install skills:
 | Skill | Description |
 |-------|-------------|
 | **brainstorming** | Principal Engineer and Product Strategist: architectural ideas, feature extensions, refactoring strategies, innovation roadmaps |
+
+### Agent Extensions
+
+#### Available Extensions
+| Extension | Description |
+|-----------|-------------|
+| **fetch-tool** | Hybrid URL fetching extension with automatic content detection (JSON, HTML, RSS, binary), markdown rendering, and truncation for the Pi coding agent |
+
+#### Installing Extensions
+```bash
+# Install fetch-tool extension
+./install-extension.sh --agent fetch-tool
+
+# Or use interactive mode to browse all available extensions
+./install-extension.sh --interactive
+```
 
 ## Usage
 
