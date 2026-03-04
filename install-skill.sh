@@ -30,17 +30,35 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_DIR="$SCRIPT_DIR/skills"
-BASE_SCRIPT_DIR="$(dirname "$0")"
 
-# Agent configuration
+# Agent configuration (local/project level)
 declare -A AGENT_CONFIGS=(
     ["opencode"]="$SCRIPT_DIR/.opencode/skills"
     ["pi"]="$SCRIPT_DIR/.pi/skills"
     ["claude"]="$SCRIPT_DIR/.claude/skills"
 )
 
+# Global agent configuration paths
+declare -A GLOBAL_AGENT_CONFIGS=(
+    ["opencode"]="$HOME/.opencode/skills"
+    ["pi"]="$HOME/.pi/agent/skills"
+    ["claude"]="$HOME/.claude/skills"
+)
+
+# Installation mode: local or global
+INSTALL_MODE="local"
+
 # Global variables
 AGENT=""
+SKILL_NAMES=()
+COPY_MODE=false
+LIST_MODE=false
+STATUS_MODE=false
+INTERACTIVE_MODE=false
+DRY_RUN_MODE=false
+FORCE_MODE=false
+INSTALL_ALL=false
+GLOBAL_MODE=false
 SKILL_NAMES=()
 COPY_MODE=false
 LIST_MODE=false
@@ -92,6 +110,7 @@ ARGUMENTS:
 OPTIONS:
     --agent AGENT         Specify the target agent (required unless interactive)
                           Supported: opencode, pi, claude
+    --global              Install globally instead of project level
     --skill SKILL [SKILL] Install specific skill(s) by name
     --all                 Install all available skills
     --list                List all available skills without installing
@@ -106,8 +125,11 @@ EXAMPLES:
     # Install all skills for opencode (interactive mode)
     $(basename "$0") --interactive
 
-    # Install specific skill for pi
+    # Install specific skill for pi at project level
     $(basename "$0") --agent pi --skill file-organizer list-large-files
+
+    # Install skill globally for opencode
+    $(basename "$0") --agent opencode --global --skill terraform
 
     # Install all skills with copy mode
     $(basename "$0") --all --copy --force
@@ -115,13 +137,16 @@ EXAMPLES:
     # Preview installation without executing
     $(basename "$0") --agent opencode --skill terraform --dry-run
 
-    # Show current installation status
+    # Show current installation status (project level)
     $(basename "$0") --status --agent opencode
 
+    # Interactive wizard with global installation selection
+    $(basename "$0") --interactive  # Will prompt for project vs global selection
+
 SUPPORTED AGENTS:
-    opencode          - Install to ~/.config/opencode/skills/
-    pi   - Install to <project>/.pi/agent/skills/
-    claude            - Install to ~/.claude/skills/
+    opencode          - Install to <project>/.opencode/skills/ or ~/.opencode/skills/ (global)
+    pi   - Install to <project>/.pi/skills/ or ~/.pi/agent/skills/ (global)
+    claude            - Install to <project>/.claude/skills/ or ~/.claude/skills/ (global)
 
 EOF
 }
@@ -168,6 +193,10 @@ parse_arguments() {
                 fi
                 AGENT="$2"
                 shift 2
+                ;;
+            --global)
+                GLOBAL_MODE=true
+                shift
                 ;;
             --skill)
                 if [[ -z "$2" || "$2" == --* ]]; then
@@ -216,18 +245,20 @@ get_available_skills() {
     
     for skill_path in "$SKILLS_DIR"/*/; do
         if [[ -f "${skill_path}SKILL.md" ]]; then
-            local skill_name=$(basename "$skill_path")
+            local skill_name
+            skill_name=$(basename "$skill_path")
             skills+=("$skill_name")
         fi
     done
     
-    echo "${skills[@]}"
+    printf '%s\n' "${skills[@]}"
 }
 
 list_skills() {
     print_header "Available Skills"
     
-    local skills=($(get_available_skills))
+    local skills
+    mapfile -t skills < <(get_available_skills)
     local count=${#skills[@]}
     
     if [[ $count -eq 0 ]]; then
@@ -257,23 +288,38 @@ list_skills() {
 }
 
 ################################################################################
-# Agent Validation
+# Agent Path Resolution
 ################################################################################
+
+get_agent_path() {
+    local agent="$1"
+    
+    if [[ "$GLOBAL_MODE" == true ]]; then
+        echo "${GLOBAL_AGENT_CONFIGS[$agent]}"
+    else
+        echo "${AGENT_CONFIGS[$agent]}"
+    fi
+}
 
 validate_agent() {
     local agent="$1"
     
-    if [[ -z "${AGENT_CONFIGS[$agent]}" ]]; then
+    # Check agent exists in either config
+    if [[ -z "${AGENT_CONFIGS[$agent]}" && -z "${GLOBAL_AGENT_CONFIGS[$agent]}" ]]; then
         print_error "Unsupported agent: $agent"
         echo ""
         echo "Supported agents:"
         for supported_agent in "${!AGENT_CONFIGS[@]}"; do
-            echo "  - $supported_agent"
+            echo "  - $supported_agent (local)"
+        done
+        for supported_agent in "${!GLOBAL_AGENT_CONFIGS[@]}"; do
+            echo "  - $supported_agent (global)"
         done
         exit 1
     fi
     
-    AGENT_PATH="${AGENT_CONFIGS[$agent]}"
+    # Determine path based on global mode
+    AGENT_PATH=$(get_agent_path "$agent")
 }
 
 ################################################################################
@@ -314,10 +360,10 @@ install_single_skill() {
     
     # Handle existing installation
     local action=""
-    local backup_needed=false
     
     if [[ -L "$target_path" ]]; then
-        local current_target=$(readlink "$target_path")
+        local current_target
+        current_target=$(readlink "$target_path")
         print_warning "Existing symlink found: $target_path -> $current_target"
         
         if [[ "$FORCE_MODE" == true ]]; then
@@ -325,7 +371,6 @@ install_single_skill() {
             rm -f "$target_path"
             action="replace_symlink"
         else
-            backup_needed=true
             action="confirm_replace"
         fi
     elif [[ -d "$target_path" ]]; then
@@ -336,7 +381,6 @@ install_single_skill() {
             rm -rf "$target_path"
             action="replace_directory"
         else
-            backup_needed=true
             action="confirm_replace"
         fi
     else
@@ -354,7 +398,8 @@ install_single_skill() {
         fi
         
         # Backup and remove existing
-        local backup_path="${target_path}.backup.$(date +%Y%m%d_%H%M%S)"
+        local backup_path
+        backup_path="${target_path}.backup.$(date +%Y%m%d_%H%M%S)"
         mv "$target_path" "$backup_path"
         print_success "Backed up to: $backup_path"
     fi
@@ -382,9 +427,9 @@ install_skills() {
     
     for skill in "${skills[@]}"; do
         if install_single_skill "$skill"; then
-            ((success_count++))
+            ((success_count++)) || true
         else
-            ((fail_count++))
+            ((fail_count++)) || true
         fi
     done
     
@@ -401,7 +446,8 @@ install_skills() {
 }
 
 install_all_skills() {
-    local skills=($(get_available_skills))
+    local skills
+    mapfile -t skills < <(get_available_skills)
     
     print_header "Installing All Skills"
     echo ""
@@ -435,7 +481,8 @@ install_all_skills() {
 
 show_installation_status() {
     local agent="$1"
-    local target_dir="${AGENT_CONFIGS[$agent]}"
+    local target_dir
+    target_dir=$(get_agent_path "$agent")
     
     print_header "Installation Status for $agent"
     
@@ -454,11 +501,13 @@ show_installation_status() {
     
     for skill_path in "$target_dir"/*/; do
         if [[ -d "$skill_path" ]]; then
-            local skill_name=$(basename "$skill_path")
+            local skill_name
+            skill_name=$(basename "$skill_path")
             local status=""
             
             if [[ -L "$skill_path" ]]; then
-                local target=$(readlink "$skill_path")
+                local target
+                target=$(readlink "$skill_path")
                 status="symlink -> $target"
                 installed_count=$((installed_count + 1))
             elif [[ -d "$skill_path" && -f "$skill_path/SKILL.md" ]]; then
@@ -474,7 +523,8 @@ show_installation_status() {
     
     echo ""
     
-    local available_skills=($(get_available_skills))
+    local available_skills
+    mapfile -t available_skills < <(get_available_skills)
     local not_installed_count=$((${#available_skills[@]} - installed_count))
     
     print_info "Installed: $installed_count / ${#available_skills[@]}"
@@ -493,8 +543,35 @@ interactive_installation() {
     print_header "AI Agent Skills Installation Wizard"
     echo ""
     
-    # Step 1: Select agent
-    echo -e "${BLUE}Step 1: Select target agent${NC}"
+    # Step 1: Select target environment (project vs global)
+    echo -e "${BLUE}Step 1: Select installation environment${NC}"
+    echo ""
+    echo "  1. Project level (local)"
+    echo "     - Install to <project>/.pi/skills/, <project>/.opencode/skills/, or <project>/.claude/skills/"
+    echo "     - Skills are relative to the project directory"
+    echo "     - Updates reflected automatically when repo is updated"
+    echo ""
+    echo "  2. Global level"
+    echo "     - Install to ~/.pi/agent/skills/, ~/.opencode/skills/, or ~/.claude/skills/"
+    echo "     - Skills are installed in user home directory"
+    echo "     - Independent of project location"
+    echo ""
+    
+    read -r -p "Choose environment (1-2): [1] " env_choice
+    env_choice=${env_choice:-1}
+    
+    if [[ "$env_choice" == "2" ]]; then
+        GLOBAL_MODE=true
+        INSTALL_MODE="global"
+    else
+        INSTALL_MODE="local"
+    fi
+    
+    print_success "Selected environment: $INSTALL_MODE"
+    echo ""
+    
+    # Step 2: Select agent
+    echo -e "${BLUE}Step 2: Select target agent${NC}"
     echo ""
     
     local i=1
@@ -507,7 +584,7 @@ interactive_installation() {
     done
     
     echo ""
-    read -p "Choose an agent (1-${#agent_options[@]}): " agent_choice
+    read -r -p "Choose an agent (1-${#agent_options[@]}): " agent_choice
     
     if ! [[ "$agent_choice" =~ ^[0-9]+$ ]] || [[ "$agent_choice" -lt 1 || "$agent_choice" -gt ${#agent_options[@]} ]]; then
         print_error "Invalid selection"
@@ -517,7 +594,9 @@ interactive_installation() {
     AGENT="${agent_options[$((agent_choice - 1))]}"
     validate_agent "$AGENT"
     
-    print_success "Selected agent: $AGENT (target: $AGENT_PATH)"
+    local target_path
+    target_path=$(get_agent_path "$AGENT")
+    print_success "Selected agent: $AGENT (target: $target_path)"
     echo ""
     
     # Step 2: Select installation type
@@ -534,7 +613,7 @@ interactive_installation() {
     echo "     - Updates require re-installation"
     echo ""
     
-    read -p "Choose installation type (1-2): [1] " install_choice
+    read -r -p "Choose installation type (1-2): [1] " install_choice
     install_choice=${install_choice:-1}
     
     if [[ "$install_choice" == "2" ]]; then
@@ -550,8 +629,9 @@ interactive_installation() {
     echo -e "${BLUE}Step 3: Select skills to install${NC}"
     echo ""
     
-    local all_skills=($(get_available_skills))
-    local selected_skills=()
+    local all_skills
+    mapfile -t all_skills < <(get_available_skills)
+    declare -a selected_skills=()
     
     while true; do
         echo "Available skills:"
@@ -586,7 +666,7 @@ interactive_installation() {
         echo "  q) Quit installation"
         echo ""
         
-        read -p "Choose an option (a/s/q): [a] " selection_choice
+        read -r -p "Choose an option (a/s/q): [a] " selection_choice
         selection_choice=${selection_choice:-a}
         
         if [[ "$selection_choice" == "q" ]]; then
@@ -597,7 +677,7 @@ interactive_installation() {
             local skill_selection=""
             
             while true; do
-                read -p "Enter skill numbers (comma-separated, or 'done' to finish): " skill_selection
+                read -r -p "Enter skill numbers (comma-separated, or 'done' to finish): " skill_selection
                 
                 if [[ "$skill_selection" == "done" || -z "$skill_selection" ]]; then
                     break
@@ -651,7 +731,7 @@ interactive_installation() {
                 
                 if [[ ${#all_skills[@]} -gt 20 ]]; then
                     echo ""
-                    read -p "Install ALL ${#all_skills[@]} available skills? [y/N] " confirm_all
+                    read -r -p "Install ALL ${#all_skills[@]} available skills? [y/N] " confirm_all
                     if [[ "$confirm_all" =~ ^[Yy]$ ]]; then
                         selected_skills=("${all_skills[@]}")
                     fi
@@ -705,7 +785,7 @@ interactive_installation() {
         return 0
     fi
     
-    read -p "Proceed with installation? [y/N] " confirm_install
+    read -r -p "Proceed with installation? [y/N] " confirm_install
     if [[ ! "$confirm_install" =~ ^[Yy]$ ]]; then
         print_warning "Installation cancelled by user"
         exit 0
@@ -731,8 +811,8 @@ main() {
         exit 0
     fi
     
-    # Validate agent for non-interactive modes
-    if [[ "$INTERACTIVE_MODE" != true && -n "$AGENT" ]]; then
+    # Validate agent for non-interactive modes (except --list)
+    if [[ "$INTERACTIVE_MODE" != true && -n "$AGENT" && "$STATUS_MODE" != true ]]; then
         validate_agent "$AGENT"
     fi
     
@@ -752,7 +832,7 @@ main() {
     local skills_to_install=()
     
     if [[ "$INSTALL_ALL" == true || ${#SKILL_NAMES[@]} -eq 0 ]]; then
-        skills_to_install=($(get_available_skills))
+        mapfile -t skills_to_install < <(get_available_skills)
     else
         skills_to_install=("${SKILL_NAMES[@]}")
     fi
@@ -786,7 +866,7 @@ main() {
         create_installation_directory "$AGENT_PATH"
         
         if [[ "${FORCE_MODE}" != true ]]; then
-            read -p "Proceed with installation? [y/N] " confirm
+            read -r -p "Proceed with installation? [y/N] " confirm
             if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
                 print_warning "Installation cancelled by user"
                 exit 0
