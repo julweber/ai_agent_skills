@@ -1,16 +1,16 @@
 # AI Agent Skills and Agents Repository
 
-This repository contains various skills and tools for AI agents, organized in a structured manner to support different capabilities and functionalities.
-These skills are implemented to be used exclusively by AI agents like opencode, Claude Code, pi, and other compatible agents.
+This repository contains various skills, agents, extensions, and tools for AI agents, organized in a structured manner to support different capabilities and functionalities.
+These are implemented to be used exclusively by AI agents like opencode, Claude Code, pi, and other compatible agents.
 
 ## Overview
 
 The repository is organized into:
 
-- **Skills Directory** (`skills/`): 12+ specialized agent skills for various domains (file organization, system monitoring, documentation generation, infrastructure, testing)
-- **Ralph Loop Implementation** (`ralph/`): Autonomous development loop for `opencode`
-- **Agents Directory** (`agents/`): Agent configuration templates (currently empty)
-- **Extensions Directory** (`extensions/`): Custom tool extensions for AI agents
+- **Skills Directory** (`skills/`): 14+ specialized agent skills for various domains (file organization, system monitoring, documentation generation, infrastructure, testing, Obsidian vault management)
+- **Agents Directory** (`agents/`): Agent configuration templates and implementations (summarizer, web-researcher)
+- **Extensions Directory** (`extensions/`): Custom tool extensions for AI agents (fetch-tool for Pi coding agent)
+- **Ralph Loop Implementation** (`ralph/`): Autonomous development loop for `opencode` with PRD generation and JSON conversion
 
 It also contains an implementation of the ralph loop for `opencode`. For more information on using the ralph loop see [ralph/README.md](ralph/README.md).
 
@@ -26,28 +26,32 @@ Use the provided installation script for an easy, guided experience:
 # Interactive installation wizard (recommended for first-time users)
 ./install-skill.sh --interactive
 
-# Or install all skills for a specific agent
-./install-skill.sh --agent opencode --all
-./install-skill.sh --agent pi --all
-./install-skill.sh --agent claude --all
+# show all installation options
+./install-skill.sh --help
 ```
 
 #### Installing Extensions
 
-For Pi coding agent extensions:
+For coding agent extensions:
 
 ```bash
 # Interactive installation wizard (recommended)
 ./install-extension.sh --interactive
 
-# List available extensions without installing
-./install-extension.sh --list
+# show all installation options
+./install-extension.sh --help
+```
 
-# Install specific extension for pi-coding-agent
-./install-extension.sh --agent fetch-tool
+#### Installing Agents
 
-# Install all available extensions
-./install-extension.sh --all
+For agent configurations:
+
+```bash
+# Interactive installation wizard (recommended)
+./install-agent.sh --interactive
+
+# show all installation options
+./install-agent.sh --help
 ```
 
 ### Manual Installation
@@ -76,9 +80,17 @@ cd ai_agent_skills
 # Link skills to pi project directory
 mkdir -p .pi/agent/skills
 ln -sf "$(pwd)/skills" .pi/agent/skills
+
+# Link extensions (optional)
+mkdir -p .pi/agent/extensions
+ln -sf "$(pwd)/extensions/pi/fetch-tool" .pi/agent/extensions/fetch-tool
+
+# Link agents (optional)
+mkdir -p .pi/agents
+ln -sf "$(pwd)/agents/pi" .pi/agents/pi
 ```
 
-The linked skills will automatically be available to your pi when working within this project. The skills are accessible at `<project_root>/.pi/agent/skills`.
+The linked skills, extensions, and agents will automatically be available to your pi when working within this project.
 
 #### claude
 
@@ -94,121 +106,13 @@ ln -sf "$(pwd)/skills" ~/.claude/skills
 
 The linked skills will automatically be available to your Claude agent.
 
-### Installation Script Reference
-
-The `install-skill.sh` script provides multiple ways to install skills:
-
-#### Basic Usage
-
-```bash
-# Show help and usage information
-./install-skill.sh --help
-
-# List all available skills without installing
-./install-skill.sh --list
-
-# Interactive installation wizard (recommended)
-./install-skill.sh --interactive
-```
-
-#### Installing Specific Skills
-
-```bash
-# Install specific skill(s) for an agent
-./install-skill.sh --agent opencode --skill file-organizer
-./install-skill.sh --agent pi --skill list-large-files list-most-intensive-processes
-
-# Install multiple skills at once
-./install-skill.sh --agent claude --skill terraform ansible brainstorming
-```
-
-#### Installation Modes
-
-```bash
-# Install all available skills (default)
-./install-skill.sh --agent opencode --all
-
-# Use file copy instead of symlinks (for isolated environments or ralph loop)
-./install-skill.sh --agent opencode --all --copy
-
-# Skip confirmation prompts (useful for automation)
-./install-skill.sh --agent pi --skill terraform --force
-
-# Preview installation without executing
-./install-skill.sh --agent opencode --skill file-organizer --dry-run
-```
-
-#### Checking Installation Status
-
-```bash
-# Show which skills are currently installed for an agent
-./install-skill.sh --status --agent opencode
-./install-skill.sh --status --agent pi
-```
-
-#### Supported Agents
+## Supported Agents
 
 | Agent        | Target Directory             | Installation Type         |
-| --------------| ------------------------------| ---------------------------|
+|--------------|------------------------------|---------------------------|
 | **opencode** | `~/.config/opencode/skills`  | Symlink (default) or Copy |
 | **pi**       | `<project>/.pi/agent/skills` | Symlink (default) or Copy |
 | **claude**   | `~/.claude/skills`           | Symlink (default) or Copy |
-
-#### Installation Types
-
-- **Symlink (recommended for development)**: Creates symbolic links to the skills repository. Updates are automatically reflected when you update the repository.
-- **Copy installation**: Copies skill files to the target directory. Useful for isolated environments, ralph loop, or when you want to preserve a specific version of skills.
-
----
-
-### Extension Installation Script Reference
-
-The `install-extension.sh` script provides guided installation of extensions for the Pi coding agent:
-
-#### Basic Usage
-
-```bash
-# Show help and usage information
-./install-extension.sh --help
-
-# List all available extensions without installing
-./install-extension.sh --list
-
-# Interactive installation wizard (recommended)
-./install-extension.sh --interactive
-```
-
-#### Installing Specific Extensions
-
-```bash
-# Install specific extension(s) for pi-coding-agent
-./install-extension.sh --agent fetch-tool
-
-# Install multiple extensions at once
-./install-extension.sh --agent fetch-tool terraform-extensions
-
-# Install all available extensions
-./install-extension.sh --all
-```
-
-#### Installation Modes
-
-```bash
-# Skip confirmation prompts (useful for automation)
-./install-extension.sh --agent fetch-tool --force
-```
-
-#### Extension Installation Details
-
-- **Target Directory**: Extensions are installed to `~/.pi/agent/extensions/<extension-name>/`
-- **Per-Extension Scripts**: Each extension may include its own `install.sh` script that gets executed during installation
-- **Validation**: Extensions are validated by checking for required `index.ts` file (TypeScript-based)
-- **Supported Agents**: Currently only supports the Pi coding agent (`--agent` parameter is optional as extensions are pi-specific)
-
-#### Installation Types
-
-- **Symlink (recommended)**: Creates symbolic links to the extension repository. Updates are automatically reflected.
-- **Copy installation**: Copies extension files to the target directory. Useful for isolated environments or preserving specific versions.
 
 ---
 
@@ -216,34 +120,44 @@ The `install-extension.sh` script provides guided installation of extensions for
 
 ```
 .
-├── README.md                 # This file
-├── AGENTS.md                 # Agent development guidelines
-├── .gitignore                # Git ignore rules (opencode, claude configs)
-├── ralph/                    # Ralph loop implementation for opencode
-│   ├── README.md             # Ralph loop setup and usage guide
-│   └── opencode-ralph.sh     # Main script to start autonomous development loop
-├── skills/                   # AI agent skill implementations (12+ skills)
-│   ├── ansible/              # Ansible automation reference with Proxmox/Docker integration
-│   ├── brainstorming/        # Architectural ideation and innovation strategy
-│   ├── file-organizer/       # Intelligent file/folder organization tool
-│   ├── list-large-files/     # Lists top N largest files in directory tree
+├── README.md                       # This file
+├── AGENTS.md                       # Agent development guidelines
+├── .gitignore                      # Git ignore rules (opencode, claude configs)
+├── ralph/                          # Ralph loop implementation for opencode
+│   ├── README.md                   # Ralph loop setup and usage guide
+│   └── opencode-ralph.sh           # Main script to start autonomous development loop
+├── skills/                         # AI agent skill implementations (14+ skills)
+│   ├── ansible/                    # Ansible automation reference with Proxmox/Docker integration
+│   ├── brainstorming/              # Architectural ideation and innovation strategy
+│   ├── file-organizer/             # Intelligent file/folder organization tool
+│   ├── frontend-web-developer/     # Full-stack web development: React, Next.js, Tailwind CSS
+│   ├── list-large-files/           # Lists top N largest files in directory tree
 │   ├── list-most-intensive-processes/  # System process monitoring by resource usage
-│   ├── opencode-agent-creator/  # Create/configure Opencode agents (primary/subagents)
+│   ├── obsidian-master/            # Obsidian vault control via CLI (read/edit/search/links/tasks)
+│   ├── opencode-agent-creator/     # Create/configure Opencode agents (primary/subagents)
 │   ├── product-prd-brainstorming/  # Generate PRDs with Mermaid system diagrams
-│   ├── ralph-prd-converter/  # Convert markdown PRDs to Ralph's JSON format
-│   ├── ralph-prd-generator/  # Generate detailed PRDs with user stories and criteria
-│   ├── rest-testssuite/      # REST API testsuites organization and generation
-│   ├── skill-creator/        # Guide for creating new AI agent skills
-│   └── terraform/            # Terraform/OpenTofu guidance, testing, CI/CD, security
-├── extensions/               # Custom tool extensions for AI agents
-│   └── pi/                   # Extensions specifically for the Pi coding agent
-│       ├── fetch-tool/       # Hybrid URL fetching extension with content detection and rendering
-│       │   ├── index.ts      # Main extension entry point with multi-method content handling
-│       │   ├── utils/helpers.ts  # Utility functions for content type detection
-│       │   └── README.md     # Detailed documentation for fetch-tool
-├── install-extension.sh      # Extension installer for Pi coding agent extensions
-├── install-skill.sh          # Skill installer for all supported agents
-└── AGENTS.md                 # Agent development guidelines
+│   ├── ralph-prd-converter/        # Convert markdown PRDs to Ralph's JSON format
+│   ├── ralph-prd-generator/        # Generate detailed PRDs with user stories and criteria
+│   ├── rest-testssuite/            # REST API testsuites organization and generation
+│   ├── skill-creator/              # Guide for creating new AI agent skills
+│   └── terraform/                  # Terraform/OpenTofu guidance, testing, CI/CD, security
+├── agents/                         # Agent configuration templates
+│   └── pi/                         # Pi agent configurations
+│       ├── summarizer.md           # Research summarization and synthesis agent
+│       └── web-researcher.md       # Comprehensive web research and analysis agent
+├── extensions/                     # Custom tool extensions for AI agents
+│   └── pi/                         # Extensions specifically for the Pi coding agent
+│       ├── fetch-tool/             # Hybrid URL fetching with content detection and rendering
+│       │   ├── index.ts            # Main extension entry point with multi-method content handling
+│       │   ├── utils/helpers.ts    # Utility functions for content type detection
+│       │   └── README.md           # Detailed documentation for fetch-tool
+├── install-agent.sh                # Agent installer for Pi coding agent configurations
+├── install-extension.sh            # Extension installer for Pi coding agent extensions
+├── install-skill.sh                # Skill installer for all supported agents
+└── docs/                           # Research and review documents (untracked)
+    ├── llama-bench-research.md     # LLM benchmark research findings
+    ├── review-march-26-qwen35.md   # Qwen 3.5 model review and analysis
+    └── typescript-fetch-research.md # TypeScript URL fetching implementation research
 ```
 
 ## Available Skills
@@ -252,12 +166,18 @@ The `install-extension.sh` script provides guided installation of extensions for
 | Skill | Description |
 |-------|-------------|
 | **file-organizer** | Intelligently organizes files and folders by understanding context, finding duplicates, suggesting better structures, and automating cleanup tasks |
-
-### System Monitoring
-| Skill | Description |
-|-------|-------------|
 | **list-large-files** | Lists the top N largest files in a given directory using Python traversal |
 | **list-most-intensive-processes** | Lists the top N most intensive processes based on CPU time and memory usage |
+
+### Web Development
+| Skill | Description |
+|-------|-------------|
+| **frontend-web-developer** | Full-stack web development expertise: React patterns, Next.js conventions, Tailwind CSS v4, and modern frontend best practices with comprehensive reference materials |
+
+### Obsidian Knowledge Management
+| Skill | Description |
+|-------|-------------|
+| **obsidian-master** | Complete Obsidian vault control via CLI: file operations (read/create/edit/move/delete), searches, links/backlinks analysis, properties/metadata management, task handling, history versions, and plugin/theme administration. Includes extensive reference documentation for all capabilities |
 
 ### Product & PRD Management
 | Skill | Description |
@@ -284,37 +204,24 @@ The `install-extension.sh` script provides guided installation of extensions for
 |-------|-------------|
 | **brainstorming** | Principal Engineer and Product Strategist: architectural ideas, feature extensions, refactoring strategies, innovation roadmaps |
 
-### Agent Extensions
+---
+
+## Agent Implementations
+
+The `agents/pi/` directory contains specialized agent configurations for the Pi coding agent:
+
+### Research & Analysis Agents
+| Agent              | Description                                                                                                                                                                              |
+| --------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **summarizer**     | Research summarization and synthesis agent that processes complex documents, identifies key insights, and creates concise summaries while maintaining context and actionable takeaways   |
+| **web-researcher** | Comprehensive web research and analysis agent with systematic approach to information gathering, source verification, cross-referencing, and synthesizing findings from multiple sources |
+
+## Coding Agent Extensions
 
 #### Available Extensions
 | Extension | Description |
 |-----------|-------------|
 | **fetch-tool** | Hybrid URL fetching extension with automatic content detection (JSON, HTML, RSS, binary), markdown rendering, and truncation for the Pi coding agent |
-
-#### Installing Extensions
-```bash
-# Install fetch-tool extension
-./install-extension.sh --agent fetch-tool
-
-# Or use interactive mode to browse all available extensions
-./install-extension.sh --interactive
-```
-
-## Usage
-
-Each skill is a directory containing `SKILL.md` with YAML frontmatter:
-
-```yaml
----
-name: skill-name
-description: Clear description of what this skill does
----
-```
-
-To use a skill:
-1. Ensure the skills directory is linked to your agent's config (see Installation)
-2. The skill activates automatically when its domain is relevant
-3. Follow instructions in each `SKILL.md` file for specific usage patterns
 
 ## Ralph Loop Integration
 
