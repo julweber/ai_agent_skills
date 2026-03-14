@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ################################################################################
 # install-agent.sh - Install pi-coding-agent agent definitions

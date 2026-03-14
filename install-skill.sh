@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ################################################################################
 # install-skill.sh - Install AI agent skills for supported coding agents
