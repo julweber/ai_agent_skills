@@ -1,6 +1,6 @@
 ---
-name: agent-creator
-description: Expert guide for creating, configuring, and managing Opencode Agents. Use this skill when the user wants to create a new agent or modify an existing one.
+name: opencode-agent-creator
+description: Expert guide for creating, configuring, and managing Opencode Agents. Use this skill when the user wants to create a new agent or modify an existing one. Only works for opencode agents.
 ---
 
 ## Overview
