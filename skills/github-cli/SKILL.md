@@ -1,5 +1,5 @@
 ---
-name: gitHub-cli
+name: github-cli
 description: Expert help with GitHub CLI (gh) for managing pull requests, issues, repositories, workflows, and releases. Use this when working with GitHub operations from the command line.
 ---
 
