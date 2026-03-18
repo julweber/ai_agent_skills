@@ -233,6 +233,35 @@ The repository includes the **ralph loop** - an autonomous development system fo
 
 See [ralph/README.md](ralph/README.md) for setup and usage details.
 
+## Testing
+
+The `tests/` directory contains a self-contained bash test suite for the three install scripts. No external dependencies are required.
+
+```bash
+# Run all suites
+bash tests/run_tests.sh
+
+# Run a single suite
+bash tests/run_tests.sh skill     # install-skill.sh
+bash tests/run_tests.sh agent     # install-agent.sh
+bash tests/run_tests.sh ext       # install-extension.sh
+
+# Run two suites
+bash tests/run_tests.sh agent ext
+```
+
+Each suite can also be executed directly:
+
+```bash
+bash tests/test_install_skill.sh
+bash tests/test_install_agent.sh
+bash tests/test_install_extension.sh
+```
+
+The runner exits with code `0` when all suites pass and `1` if any suite fails.
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please follow these steps:

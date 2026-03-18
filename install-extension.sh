@@ -28,7 +28,8 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXTENSIONS_DIR="$SCRIPT_DIR/extensions/pi"
-INSTALL_BASE="$HOME/.pi/agent/extensions"
+INSTALL_BASE=""          # resolved in resolve_install_base()
+TARGET_DIR=""            # set via --target-dir (defaults to $HOME)
 
 # Global flags
 EXTENSION_NAMES=()
@@ -71,7 +72,7 @@ usage() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS] [EXTENSION...]
 
-Install pi-coding-agent extensions to ~/.pi/agent/extensions/.
+Install pi-coding-agent extensions.
 
 ARGUMENTS:
     EXTENSION...          One or more extension names to install (optional)
@@ -81,6 +82,7 @@ OPTIONS:
     --list                List available extensions without installing
     --interactive         Start interactive installation wizard
     --force               Skip confirmation prompts
+    --target-dir DIR      Install into <DIR>/.pi/agent/extensions/ instead of ~/.pi/agent/extensions/
     --help, -h            Show this help message and exit
 
 EXAMPLES:
@@ -90,15 +92,20 @@ EXAMPLES:
     # Install all extensions interactively
     $(basename "$0") --interactive
 
-    # Install a specific extension
+    # Install a specific extension (defaults to ~/.pi/agent/extensions/)
     $(basename "$0") fetch-tool
+
+    # Install a specific extension into a custom directory
+    $(basename "$0") --target-dir /path/to/project fetch-tool
 
     # Install all extensions without prompts
     $(basename "$0") --all --force
 
 INSTALLATION METHOD:
-    All extensions are installed via symbolic links to ~/.pi/agent/extensions/
-    Example: fetch-tool -> ~/.pi/agent/extensions/fetch-tool -> ../extensions/pi/fetch-tool
+    All extensions are installed via symbolic links.
+    Default target: ~/.pi/agent/extensions/
+    Custom target:  <target-dir>/.pi/agent/extensions/
+    Example: fetch-tool -> <target>/fetch-tool
 
 EXTENSION FORMAT:
     Each extension directory must contain:
@@ -135,6 +142,14 @@ parse_arguments() {
                 INSTALL_ALL=true
                 shift
                 ;;
+            --target-dir|-t)
+                if [[ -z "$2" || "$2" == --* ]]; then
+                    print_error "Missing value for --target-dir"
+                    exit 1
+                fi
+                TARGET_DIR="$2"
+                shift 2
+                ;;
             --*)
                 print_error "Unknown option: $1"
                 usage
@@ -147,12 +162,29 @@ parse_arguments() {
         esac
     done
 
+    # Validate --target-dir if provided
+    if [[ -n "$TARGET_DIR" ]]; then
+        if [[ ! -d "$TARGET_DIR" ]]; then
+            print_error "Target directory does not exist: $TARGET_DIR"
+            exit 1
+        fi
+        TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+    fi
+
     # Need at least one action
     if [[ "$LIST_MODE" == false && "$INTERACTIVE_MODE" == false && "$INSTALL_ALL" == false && ${#EXTENSION_NAMES[@]} -eq 0 ]]; then
         print_error "No action specified. Use --all, --list, --interactive, or provide extension name(s)."
         echo ""
         usage
         exit 1
+    fi
+}
+
+resolve_install_base() {
+    if [[ -n "$TARGET_DIR" ]]; then
+        INSTALL_BASE="$TARGET_DIR/.pi/agent/extensions"
+    else
+        INSTALL_BASE="$HOME/.pi/agent/extensions"
     fi
 }
 
@@ -174,7 +206,7 @@ get_available_extensions() {
         fi
     done
 
-    echo "${extensions[@]}"
+    printf '%s\n' "${extensions[@]}"
 }
 
 get_extension_description() {
@@ -332,6 +364,25 @@ interactive_installation() {
     print_header "Pi Extension Installation Wizard"
     echo ""
 
+    # Step 1: Target directory
+    echo -e "${BLUE}Step 1: Select target directory${NC}"
+    echo ""
+    echo "  Extensions will be installed into <target-dir>/.pi/agent/extensions/"
+    echo ""
+    read -r -p "  Enter target directory [${HOME}]: " target_dir_input
+    target_dir_input="${target_dir_input:-$HOME}"
+    target_dir_input="${target_dir_input/#\~/$HOME}"
+
+    if [[ ! -d "$target_dir_input" ]]; then
+        print_error "Directory does not exist: $target_dir_input"
+        exit 1
+    fi
+
+    TARGET_DIR="$(cd "$target_dir_input" && pwd)"
+    resolve_install_base
+    print_success "Install target: $INSTALL_BASE"
+    echo ""
+
     local all_extensions_arr=()
     while IFS= read -r ext; do
         all_extensions_arr+=("$ext")
@@ -342,8 +393,8 @@ interactive_installation() {
         exit 1
     fi
 
-    # Step 1: Installation type (always symlink)
-    echo -e "${BLUE}Step 1: Installation method${NC}"
+    # Step 2: Installation type (always symlink)
+    echo -e "${BLUE}Step 2: Installation method${NC}"
     echo ""
     echo "  All extensions are installed using symbolic links:"
     echo ""
@@ -353,8 +404,8 @@ interactive_installation() {
     echo "    - Recommended for development and testing"
     echo ""
 
-    # Step 2: Select extensions
-    echo -e "${BLUE}Step 2: Select extensions to install${NC}"
+    # Step 3: Select extensions
+    echo -e "${BLUE}Step 3: Select extensions to install${NC}"
     echo ""
 
     local i=1
@@ -472,6 +523,7 @@ post_install_info() {
 
 main() {
     parse_arguments "$@"
+    resolve_install_base
 
     if [[ "$LIST_MODE" == true ]]; then
         list_extensions

@@ -27,7 +27,8 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENTS_DIR="$SCRIPT_DIR/agents/pi"
-INSTALL_BASE="$HOME/.pi/agent/agents"
+INSTALL_BASE=""          # resolved in resolve_install_base()
+TARGET_DIR=""            # set via --target-dir (defaults to $HOME for global installs)
 
 # Global flags
 AGENT_NAMES=()
@@ -70,7 +71,7 @@ usage() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS] [AGENT...]
 
-Install pi-coding-agent agent definitions to ~/.pi/agent/agents/.
+Install pi-coding-agent agent definitions.
 
 ARGUMENTS:
     AGENT...              One or more agent names to install (without .md extension)
@@ -80,6 +81,7 @@ OPTIONS:
     --list                List available agents without installing
     --interactive         Start interactive installation wizard
     --force               Skip confirmation prompts
+    --target-dir DIR      Install into <DIR>/.pi/agent/agents/ instead of ~/.pi/agent/agents/
     --help, -h            Show this help message and exit
 
 EXAMPLES:
@@ -89,15 +91,20 @@ EXAMPLES:
     # Install all agents interactively
     $(basename "$0") --interactive
 
-    # Install a specific agent
+    # Install a specific agent (defaults to ~/.pi/agent/agents/)
     $(basename "$0") web-researcher
+
+    # Install a specific agent into a custom directory
+    $(basename "$0") --target-dir /path/to/project web-researcher
 
     # Install all agents without prompts
     $(basename "$0") --all --force
 
 INSTALLATION METHOD:
-    All agents are installed via symbolic links to ~/.pi/agent/agents/
-    Example: agents/pi/web-researcher.md -> ~/.pi/agent/agents/web-researcher.md
+    All agents are installed via symbolic links.
+    Default target: ~/.pi/agent/agents/
+    Custom target:  <target-dir>/.pi/agent/agents/
+    Example: agents/pi/web-researcher.md -> <target>/web-researcher.md
 
 AGENT FORMAT:
     Each agent is a single markdown file (.md) in agents/pi/
@@ -132,6 +139,14 @@ parse_arguments() {
                 INSTALL_ALL=true
                 shift
                 ;;
+            --target-dir|-t)
+                if [[ -z "$2" || "$2" == --* ]]; then
+                    print_error "Missing value for --target-dir"
+                    exit 1
+                fi
+                TARGET_DIR="$2"
+                shift 2
+                ;;
             --*)
                 print_error "Unknown option: $1"
                 usage
@@ -144,12 +159,29 @@ parse_arguments() {
         esac
     done
 
+    # Validate --target-dir if provided
+    if [[ -n "$TARGET_DIR" ]]; then
+        if [[ ! -d "$TARGET_DIR" ]]; then
+            print_error "Target directory does not exist: $TARGET_DIR"
+            exit 1
+        fi
+        TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+    fi
+
     # Need at least one action
     if [[ "$LIST_MODE" == false && "$INTERACTIVE_MODE" == false && "$INSTALL_ALL" == false && ${#AGENT_NAMES[@]} -eq 0 ]]; then
         print_error "No action specified. Use --all, --list, --interactive, or provide agent name(s)."
         echo ""
         usage
         exit 1
+    fi
+}
+
+resolve_install_base() {
+    if [[ -n "$TARGET_DIR" ]]; then
+        INSTALL_BASE="$TARGET_DIR/.pi/agent/agents"
+    else
+        INSTALL_BASE="$HOME/.pi/agent/agents"
     fi
 }
 
@@ -328,6 +360,25 @@ interactive_installation() {
     print_header "Pi Agent Installation Wizard"
     echo ""
 
+    # Step 1: Target directory
+    echo -e "${BLUE}Step 1: Select target directory${NC}"
+    echo ""
+    echo "  Agents will be installed into <target-dir>/.pi/agent/agents/"
+    echo ""
+    read -r -p "  Enter target directory [${HOME}]: " target_dir_input
+    target_dir_input="${target_dir_input:-$HOME}"
+    target_dir_input="${target_dir_input/#\~/$HOME}"
+
+    if [[ ! -d "$target_dir_input" ]]; then
+        print_error "Directory does not exist: $target_dir_input"
+        exit 1
+    fi
+
+    TARGET_DIR="$(cd "$target_dir_input" && pwd)"
+    resolve_install_base
+    print_success "Install target: $INSTALL_BASE"
+    echo ""
+
     local all_agents_arr=()
     while IFS= read -r agent; do
         all_agents_arr+=("$agent")
@@ -338,7 +389,7 @@ interactive_installation() {
         exit 1
     fi
 
-    echo -e "${BLUE}Select agents to install${NC}"
+    echo -e "${BLUE}Step 2: Select agents to install${NC}"
     echo ""
 
     local i=1
@@ -447,6 +498,7 @@ post_install_info() {
 
 main() {
     parse_arguments "$@"
+    resolve_install_base
 
     if [[ "$LIST_MODE" == true ]]; then
         list_agents

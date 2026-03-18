@@ -31,15 +31,14 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_DIR="$SCRIPT_DIR/skills"
 
-# Agent configuration (local/project level)
-declare -A AGENT_CONFIGS=(
-    ["opencode"]="$SCRIPT_DIR/.opencode/skills"
-    ["pi"]="$SCRIPT_DIR/.pi/skills"
-    ["claude"]="$SCRIPT_DIR/.claude/skills"
+# Agent sub-paths (relative to project root or home)
+declare -A AGENT_LOCAL_SUBPATHS=(
+    ["opencode"]=".opencode/skills"
+    ["pi"]=".pi/skills"
+    ["claude"]=".claude/skills"
 )
 
-# Global agent configuration paths
-declare -A GLOBAL_AGENT_CONFIGS=(
+declare -A AGENT_GLOBAL_PATHS=(
     ["opencode"]="$HOME/.opencode/skills"
     ["pi"]="$HOME/.pi/agent/skills"
     ["claude"]="$HOME/.claude/skills"
@@ -50,6 +49,7 @@ INSTALL_MODE="local"
 
 # Global variables
 AGENT=""
+TARGET_DIR=""   # explicit --target-dir; defaults to $PWD when local
 SKILL_NAMES=()
 COPY_MODE=false
 LIST_MODE=false
@@ -59,14 +59,6 @@ DRY_RUN_MODE=false
 FORCE_MODE=false
 INSTALL_ALL=false
 GLOBAL_MODE=false
-SKILL_NAMES=()
-COPY_MODE=false
-LIST_MODE=false
-STATUS_MODE=false
-INTERACTIVE_MODE=false
-DRY_RUN_MODE=false
-FORCE_MODE=false
-INSTALL_ALL=false
 
 ################################################################################
 # Utility Functions
@@ -110,7 +102,10 @@ ARGUMENTS:
 OPTIONS:
     --agent AGENT         Specify the target agent (required unless interactive)
                           Supported: opencode, pi, claude
+    --target-dir DIR      Target project directory for local installation
+                          (defaults to current working directory)
     --global              Install globally instead of project level
+                          (mutually exclusive with --target-dir)
     --skill SKILL [SKILL] Install specific skill(s) by name
     --all                 Install all available skills
     --list                List all available skills without installing
@@ -125,8 +120,11 @@ EXAMPLES:
     # Install all skills for opencode (interactive mode)
     $(basename "$0") --interactive
 
-    # Install specific skill for pi at project level
+    # Install specific skill for pi into the current project directory
     $(basename "$0") --agent pi --skill file-organizer list-large-files
+
+    # Install specific skill for pi into a specific project directory
+    $(basename "$0") --agent pi --skill file-organizer --target-dir /path/to/my-project
 
     # Install skill globally for opencode
     $(basename "$0") --agent opencode --global --skill terraform
@@ -137,16 +135,18 @@ EXAMPLES:
     # Preview installation without executing
     $(basename "$0") --agent opencode --skill terraform --dry-run
 
-    # Show current installation status (project level)
-    $(basename "$0") --status --agent opencode
+    # Show current installation status for a specific project
+    $(basename "$0") --status --agent opencode --target-dir /path/to/my-project
 
-    # Interactive wizard with global installation selection
-    $(basename "$0") --interactive  # Will prompt for project vs global selection
+    # Interactive wizard (will prompt for target directory)
+    $(basename "$0") --interactive
 
 SUPPORTED AGENTS:
-    opencode          - Install to <project>/.opencode/skills/ or ~/.opencode/skills/ (global)
-    pi   - Install to <project>/.pi/skills/ or ~/.pi/agent/skills/ (global)
-    claude            - Install to <project>/.claude/skills/ or ~/.claude/skills/ (global)
+    opencode  - Install to <target-dir>/.opencode/skills/ or ~/.opencode/skills/ (global)
+    pi        - Install to <target-dir>/.pi/skills/      or ~/.pi/agent/skills/  (global)
+    claude    - Install to <target-dir>/.claude/skills/  or ~/.claude/skills/    (global)
+
+  <target-dir> defaults to the current working directory when --global is not set.
 
 EOF
 }
@@ -198,6 +198,14 @@ parse_arguments() {
                 GLOBAL_MODE=true
                 shift
                 ;;
+            --target-dir|-t)
+                if [[ -z "$2" || "$2" == --* ]]; then
+                    print_error "Missing value for --target-dir"
+                    exit 1
+                fi
+                TARGET_DIR="$2"
+                shift 2
+                ;;
             --skill)
                 if [[ -z "$2" || "$2" == --* ]]; then
                     print_error "Missing value for --skill"
@@ -222,6 +230,23 @@ parse_arguments() {
                 ;;
         esac
     done
+
+    # Mutual exclusion: --target-dir and --global
+    if [[ -n "$TARGET_DIR" && "$GLOBAL_MODE" == true ]]; then
+        print_error "--target-dir and --global are mutually exclusive"
+        exit 1
+    fi
+
+    # Validate --target-dir exists
+    if [[ -n "$TARGET_DIR" && ! -d "$TARGET_DIR" ]]; then
+        print_error "Target directory does not exist: $TARGET_DIR"
+        exit 1
+    fi
+
+    # Resolve TARGET_DIR to absolute path
+    if [[ -n "$TARGET_DIR" ]]; then
+        TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+    fi
 
     # Validate agent specification for non-interactive mode (except for --list)
     if [[ "$INTERACTIVE_MODE" == false && -z "$AGENT" && "$LIST_MODE" != true ]]; then
@@ -293,32 +318,32 @@ list_skills() {
 
 get_agent_path() {
     local agent="$1"
-    
+
     if [[ "$GLOBAL_MODE" == true ]]; then
-        echo "${GLOBAL_AGENT_CONFIGS[$agent]}"
+        echo "${AGENT_GLOBAL_PATHS[$agent]}"
     else
-        echo "${AGENT_CONFIGS[$agent]}"
+        # Local: use TARGET_DIR if set, otherwise fall back to $PWD
+        local base="${TARGET_DIR:-$PWD}"
+        local subpath="${AGENT_LOCAL_SUBPATHS[$agent]}"
+        echo "$base/$subpath"
     fi
 }
 
 validate_agent() {
     local agent="$1"
-    
-    # Check agent exists in either config
-    if [[ -z "${AGENT_CONFIGS[$agent]}" && -z "${GLOBAL_AGENT_CONFIGS[$agent]}" ]]; then
+
+    # Check agent is known
+    if [[ -z "${AGENT_LOCAL_SUBPATHS[$agent]}" && -z "${AGENT_GLOBAL_PATHS[$agent]}" ]]; then
         print_error "Unsupported agent: $agent"
         echo ""
         echo "Supported agents:"
-        for supported_agent in "${!AGENT_CONFIGS[@]}"; do
-            echo "  - $supported_agent (local)"
-        done
-        for supported_agent in "${!GLOBAL_AGENT_CONFIGS[@]}"; do
-            echo "  - $supported_agent (global)"
+        for supported_agent in "${!AGENT_LOCAL_SUBPATHS[@]}"; do
+            echo "  - $supported_agent"
         done
         exit 1
     fi
-    
-    # Determine path based on global mode
+
+    # Determine path based on global/local mode
     AGENT_PATH=$(get_agent_path "$agent")
 }
 
@@ -503,11 +528,13 @@ show_installation_status() {
         if [[ -d "$skill_path" ]]; then
             local skill_name
             skill_name=$(basename "$skill_path")
+            # Strip trailing slash for -L test (bash -L fails on "dir/" symlinks)
+            local skill_path_notrail="${skill_path%/}"
             local status=""
             
-            if [[ -L "$skill_path" ]]; then
+            if [[ -L "$skill_path_notrail" ]]; then
                 local target
-                target=$(readlink "$skill_path")
+                target=$(readlink "$skill_path_notrail")
                 status="symlink -> $target"
                 installed_count=$((installed_count + 1))
             elif [[ -d "$skill_path" && -f "$skill_path/SKILL.md" ]]; then
@@ -559,17 +586,37 @@ interactive_installation() {
     
     read -r -p "Choose environment (1-2): [1] " env_choice
     env_choice=${env_choice:-1}
-    
+
     if [[ "$env_choice" == "2" ]]; then
         GLOBAL_MODE=true
         INSTALL_MODE="global"
     else
         INSTALL_MODE="local"
+
+        # Prompt for target project directory
+        echo ""
+        echo -e "${BLUE}Step 1b: Select target project directory${NC}"
+        echo ""
+        echo "  Skills will be installed into <target-dir>/.<agent>/skills/"
+        echo ""
+        read -r -p "  Enter target project directory [${PWD}]: " target_dir_input
+        target_dir_input="${target_dir_input:-$PWD}"
+
+        # Expand ~ if present
+        target_dir_input="${target_dir_input/#\~/$HOME}"
+
+        if [[ ! -d "$target_dir_input" ]]; then
+            print_error "Directory does not exist: $target_dir_input"
+            exit 1
+        fi
+
+        TARGET_DIR="$(cd "$target_dir_input" && pwd)"
+        print_success "Target directory: $TARGET_DIR"
     fi
-    
+
     print_success "Selected environment: $INSTALL_MODE"
     echo ""
-    
+
     # Step 2: Select agent
     echo -e "${BLUE}Step 2: Select target agent${NC}"
     echo ""
@@ -577,7 +624,7 @@ interactive_installation() {
     local i=1
     declare -a agent_options=()
     
-    for agent in "${!AGENT_CONFIGS[@]}"; do
+    for agent in "${!AGENT_LOCAL_SUBPATHS[@]}"; do
         agent_options+=("$agent")
         echo "  $i. $agent"
         ((i++))
