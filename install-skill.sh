@@ -641,23 +641,17 @@ interactive_installation() {
         declare -A skill_map=()
         
         for skill in "${all_skills[@]}"; do
-            if [[ $i -le 20 ]]; then  # Limit display to first 20
-                local status=""
-                if [[ "$COPY_MODE" == true ]]; then
-                    status="[$i] "
-                else
-                    status="$i) "
-                fi
-                
-                echo "  ${status}$skill"
-                skill_map["$i"]="$skill"
-                ((i++))
+            local status=""
+            if [[ "$COPY_MODE" == true ]]; then
+                status="[$i] "
+            else
+                status="$i) "
             fi
+            
+            echo "  ${status}$skill"
+            skill_map["$i"]="$skill"
+            ((i++))
         done
-        
-        if [[ $i -gt 21 ]]; then
-            echo "  ... and $((${#all_skills[@]} - 20)) more skills"
-        fi
         
         echo ""
         echo "Options:"
@@ -729,12 +723,10 @@ interactive_installation() {
                 
                 print_success "Selected ${#selected_skills[@]} skills"
                 
-                if [[ ${#all_skills[@]} -gt 20 ]]; then
-                    echo ""
-                    read -r -p "Install ALL ${#all_skills[@]} available skills? [y/N] " confirm_all
-                    if [[ "$confirm_all" =~ ^[Yy]$ ]]; then
-                        selected_skills=("${all_skills[@]}")
-                    fi
+                echo ""
+                read -r -p "Install ALL ${#all_skills[@]} available skills? [y/N] " confirm_all
+                if [[ "$confirm_all" =~ ^[Yy]$ ]]; then
+                    selected_skills=("${all_skills[@]}")
                 fi
                 
                 break
