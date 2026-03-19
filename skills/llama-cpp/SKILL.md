@@ -59,6 +59,9 @@ llama-server --model model.gguf -c 4096 -np 1
 ### 2. Run Direct Inference with llama-cli
 
 ```bash
+# List available gpu devices
+llama-cli --list-devices
+
 # Simple prompt completion
 llama-cli --model model.gguf -p "Explain quantum computing" -n 512
 
