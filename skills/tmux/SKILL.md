@@ -8,6 +8,30 @@ license: Vibecoded
 
 Use tmux as a programmable terminal multiplexer for interactive work. Works on Linux and macOS with stock tmux; avoid custom config by using a private socket.
 
+## Terminology
+
+### ***Session***
+
+A tmux session is like a workspace or project container that keeps all your terminal windows, panes, and their running processes alive even when you detach from it.
+
+- A virtual terminal environment that persists across connections
+- All your tmux work (windows, panes) happens inside sessions
+- You can exit/close a session to kill everything in it, or detach to keep it running in the background
+
+### **Windows** (like tabs)
+
+- Each window contains one or more terminal panes
+- You can have multiple independent terminal sessions within a single window
+- Think of windows as "virtual desktops" - each has its own tab in the status bar
+
+### **Panes** (like split views)
+
+- Panes are subdivisions within a single tmux window
+- Each pane runs an independent terminal session but shares the same window
+- Think of panes as "split terminals" - like having multiple terminal areas side-by-side in one tab
+
+This hierarchical structure (session → windows → panes) is what makes tmux so powerful.
+
 ## Quickstart (isolated socket)
 
 ```bash
@@ -103,3 +127,7 @@ Some special rules for processes:
 - `-i` poll interval seconds (default 0.5)
 - `-l` history lines to search from the pane (integer, default 1000)
 - Exits 0 on first match, 1 on timeout. On failure prints the last captured text to stderr to aid debugging.
+
+# TMUX command cheat sheet
+
+Offer the user help in using tmux. If the user asks for tmux usage guidance: read [tmux-cheat-sheet.md](references/tmux-cheat-sheet.md) for gathering information first, then respond the user with proper guidance.
