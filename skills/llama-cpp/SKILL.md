@@ -167,7 +167,7 @@ llama-server --list-devices
 llama-server --cache-list
 
 # Run with Vulkan backend (AMD GPUs)
-llama-server --model model.gguf --device vulkan -ngl auto
+llama-server --model model.gguf --device Vulkan0 -ngl auto
 ```
 
 **Advanced Parameters:**
@@ -200,7 +200,7 @@ llama-server --model model.gguf -ngl auto -fa on
 llama-server --list-devices
 
 # Force specific device
-llama-server --model model.gguf --device vulkan:0 -ngl auto
+llama-server --model model.gguf --device Vulkan0 -ngl auto
 ```
 
 ### Apple Silicon (Metal)
