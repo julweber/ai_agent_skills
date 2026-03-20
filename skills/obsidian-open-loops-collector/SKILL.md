@@ -16,7 +16,7 @@ Performs a full GTD-style sweep of the vault and presents a consolidated view of
   - `10 - Tasks - Beruflich.md` — professional tasks
   - `TODOs - AKTUELL.md` — current high-priority TODOs
   - `Work/HUK/` — work project tasks (HUK)
-- **Vault path**: `/home/verfeinerer/main_vault`
+- **Vault path**: `$HOME/main_vault`
 - **Obsidian CLI**: always use `obsidian --no-sandbox`
 
 ## Workflow: Three-Pass Collection
@@ -65,8 +65,10 @@ obsidian --no-sandbox search:context query="TODO" limit=5 format=json
 
 ### Pass 3 — Stub Notes (incomplete / abandoned)
 
+Use the [collect_stubs.sh](scripts/collect_stubs.sh) script.
+
 ```bash
-bash /home/verfeinerer/.pi/agent/skills/open-loops-collector/scripts/collect_stubs.sh /home/verfeinerer/main_vault
+bash scripts/collect_stubs.sh $HOME/main_vault
 ```
 
 This returns lines like: `3\tSome Note.md`

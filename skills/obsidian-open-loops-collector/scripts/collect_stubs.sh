@@ -14,7 +14,6 @@ find "$VAULT" -name "*.md" \
   -not -path "*/Templates/*" \
   -not -path "*/ZZ-Archiv/*" \
   -not -path "*/Evernote Import/*" \
-  -not -path "*/03-denkfabrik/*" \
   -not -path "*/Attachments/*" \
   -not -path "*/Chats/*" \
   -not -path "*/.obsidian/*" | \

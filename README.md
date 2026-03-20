@@ -7,12 +7,23 @@ These are implemented to be used exclusively by AI agents like opencode, Claude 
 
 The repository is organized into:
 
-- **Skills Directory** (`skills/`): 14+ specialized agent skills for various domains (file organization, system monitoring, documentation generation, infrastructure, testing, Obsidian vault management)
+- **Skills Directory** (`skills/`): 29+ specialized agent skills for various domains (CLI tooling, file organization, system monitoring, documentation generation, infrastructure, testing, Obsidian vault management, AI agents)
 - **Agents Directory** (`agents/`): Agent configuration templates and implementations (summarizer, web-researcher)
 - **Extensions Directory** (`extensions/`): Custom tool extensions for AI agents (fetch-tool for Pi coding agent)
 - **Ralph Loop Implementation** (`ralph/`): Autonomous development loop for `opencode` with PRD generation and JSON conversion
 
 It also contains an implementation of the ralph loop for `opencode`. For more information on using the ralph loop see [ralph/README.md](ralph/README.md).
+
+## Quick Start with an AI Agent
+
+This repository ships an [Agent Skills](https://agentskills.io)-compatible skill that gives any compatible AI agent (Claude Code, pi, etc.) full context about the available automations, how to configure them, and how to run them.
+
+Point your agent at the skill file:
+```
+skills/ai-agent-skills-assistant/SKILL.md
+```
+
+The agent will read the README and discover available scripts on its own, then guide you interactively.
 
 ## Installation
 
@@ -113,6 +124,7 @@ The linked skills will automatically be available to your Claude agent.
 | **opencode** | `~/.config/opencode/skills`  | Symlink (default) or Copy |
 | **pi**       | `<project>/.pi/agent/skills` | Symlink (default) or Copy |
 | **claude**   | `~/.claude/skills`           | Symlink (default) or Copy |
+| **codex**    | Config-dependent             | Manual configuration      |
 
 ---
 
@@ -126,21 +138,36 @@ The linked skills will automatically be available to your Claude agent.
 ├── ralph/                          # Ralph loop implementation for opencode
 │   ├── README.md                   # Ralph loop setup and usage guide
 │   └── opencode-ralph.sh           # Main script to start autonomous development loop
-├── skills/                         # AI agent skill implementations (14+ skills)
+├── skills/                         # AI agent skill implementations (29+ skills)
+│   ├── ai-agent-skills-assistant/  # Assistant skill for navigating the AI Agent Skills repository
 │   ├── ansible/                    # Ansible automation reference with Proxmox/Docker integration
 │   ├── brainstorming/              # Architectural ideation and innovation strategy
+│   ├── claude-cli/                 # Expert Claude Code CLI control: sessions, MCP servers, plugins, authentication
+│   ├── code-summarizer/            # Codebase summarization from local directories or GitHub/GitLab URLs
+│   ├── codex-cli/                  # Codex CLI expert: exec, review, login/logout, MCP server management
 │   ├── file-organizer/             # Intelligent file/folder organization tool
 │   ├── frontend-web-developer/     # Full-stack web development: React, Next.js, Tailwind CSS
+│   ├── github-cli/                 # GitHub CLI (gh) expert: PRs, issues, repos, workflows, releases
+│   ├── gtd-assistant/              # GTD-style productivity assistant with open loop collection and brainstorming
 │   ├── list-large-files/           # Lists top N largest files in directory tree
 │   ├── list-most-intensive-processes/  # System process monitoring by resource usage
+│   ├── llama-cpp/                  # llama.cpp tooling: llama-server, llama-cli, local LLM inference with GPU acceleration
+│   ├── morning-ritual/             # Structured morning work ritual: pulls open tasks from Obsidian, highlights focus items
+│   ├── nextcloud-cli/              # Nextcloud CLI sync tool (nextcloudcmd) for file synchronization management
 │   ├── obsidian-master/            # Obsidian vault control via CLI (read/edit/search/links/tasks)
+│   ├── obsidian-open-loops-collector/  # Collects open loops from Obsidian vault: tasks, TODOs, stub notes
 │   ├── opencode-agent-creator/     # Create/configure Opencode agents (primary/subagents)
+│   ├── opencode-cli/               # Expert opencode CLI control: TUI, server, web UI, sessions, providers, models
+│   ├── pi-cli/                     # Pi coding agent CLI expert: launch sessions, manage extensions/packages, switch models
 │   ├── product-prd-brainstorming/  # Generate PRDs with Mermaid system diagrams
+│   ├── python-api-developer/       # Python API development guidance and best practices
 │   ├── ralph-prd-converter/        # Convert markdown PRDs to Ralph's JSON format
 │   ├── ralph-prd-generator/        # Generate detailed PRDs with user stories and criteria
 │   ├── rest-testssuite/            # REST API testsuites organization and generation
 │   ├── skill-creator/              # Guide for creating new AI agent skills
-│   └── terraform/                  # Terraform/OpenTofu guidance, testing, CI/CD, security
+│   ├── terraform/                  # Terraform/OpenTofu guidance, testing, CI/CD, security
+│   ├── tmux/                       # Remote tmux session control: send keystrokes, scrape pane output
+│   └── trello-cli/                 # Trello CLI expert: manage boards/cards/lists programmatically via JSON
 ├── agents/                         # Agent configuration templates
 │   └── pi/                         # Pi agent configurations
 │       ├── summarizer.md           # Research summarization and synthesis agent
@@ -162,6 +189,19 @@ The linked skills will automatically be available to your Claude agent.
 
 ## Available Skills
 
+### CLI Tool Expertise
+| Skill | Description |
+|-------|-------------|
+| **claude-cli** | Expert Claude Code CLI control: sessions, MCP servers, plugins, authentication, and all commands/flags/options |
+| **codex-cli** | Codex CLI expert: exec, review, login/logout, MCP server management, sandbox modes, and usage patterns |
+| **github-cli** | GitHub CLI (gh) expert: PRs, issues, repositories, workflows, releases, and programmatic JSON operations |
+| **opencode-cli** | Expert opencode CLI control: TUI, headless server, web UI, sessions, providers, agents, models, stats, import/export, debugging |
+| **pi-cli** | Pi coding agent CLI expert: launch sessions, manage extensions/packages, switch models, configure tools, export sessions |
+| **trello-cli** | Trello CLI power user: execute commands, parse JSON output, manage boards/cards/lists programmatically |
+| **nextcloud-cli** | Nextcloud sync tool (nextcloudcmd) control for file synchronization with remote servers |
+| **tmux** | Remote tmux session control: send keystrokes to interactive CLIs, scrape pane output |
+| **llama-cpp** | llama.cpp expert: llama-server, llama-cli, local LLM inference with GPU acceleration, model loading from Hugging Face/Docker Hub |
+
 ### File & System Organization
 | Skill | Description |
 |-------|-------------|
@@ -173,11 +213,13 @@ The linked skills will automatically be available to your Claude agent.
 | Skill | Description |
 |-------|-------------|
 | **frontend-web-developer** | Full-stack web development expertise: React patterns, Next.js conventions, Tailwind CSS v4, and modern frontend best practices with comprehensive reference materials |
+| **python-api-developer** | Python API development guidance: REST APIs, FastAPI/Flask frameworks, authentication, testing, deployment patterns |
 
 ### Obsidian Knowledge Management
 | Skill | Description |
 |-------|-------------|
 | **obsidian-master** | Complete Obsidian vault control via CLI: file operations (read/create/edit/move/delete), searches, links/backlinks analysis, properties/metadata management, task handling, history versions, and plugin/theme administration. Includes extensive reference documentation for all capabilities |
+| **obsidian-open-loops-collector** | Collects open loops from Obsidian vault: tasks from 00-Tasks/, dangling thoughts (TODO/idea/later/?), stub notes (<10 lines) for GTD-style reflection |
 
 ### Product & PRD Management
 | Skill | Description |
@@ -199,10 +241,18 @@ The linked skills will automatically be available to your Claude agent.
 | **ansible** | Ansible automation reference for playbooks, roles, inventory, variables; includes Proxmox VE and Docker integration |
 | **rest-testssuite** | Organizes REST API testsuites, generates CRUD test files |
 
-### Strategic Development
+### Strategic Development & Productivity
 | Skill | Description |
 |-------|-------------|
 | **brainstorming** | Principal Engineer and Product Strategist: architectural ideas, feature extensions, refactoring strategies, innovation roadmaps |
+| **code-summarizer** | Codebase summarization from local directories or GitHub/GitLab URLs: architecture, core concepts, key features, problems & solutions |
+| **gtd-assistant** | GTD-style productivity assistant combining open loop collection with intelligent brainstorming for actionable next steps and priorities |
+| **morning-ritual** | Structured morning work ritual: pulls open tasks from Obsidian, surfaces due items, highlights urgent tasks, identifies 1-3 MITs (Most Important Tasks) |
+
+### Repository Assistant
+| Skill | Description |
+|-------|-------------|
+| **ai-agent-skills-assistant** | Expert assistant for navigating the AI Agent Skills repository. Helps install skills/agents/extensions and provides guidance on available capabilities by gathering information from installed directories |
 
 ---
 

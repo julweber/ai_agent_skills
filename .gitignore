@@ -1,6 +1,7 @@
 .opencode/
 .claude/
 .pi/
+.codex/
 
 node_modules/
 .venv/

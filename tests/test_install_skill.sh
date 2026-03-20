@@ -191,16 +191,27 @@ assert_exit_code "exits 0 after install" "$_RC" "0"
 assert_contains  "shows skill in status"  "$_OUT" "$SKILL_A"
 assert_contains  "shows symlink label"    "$_OUT" "symlink"
 
-# ─── 16. opencode and claude agent paths ─────────────────────────────────────
+# ─── 16. supported agent paths ────────────────────────────────────────────────
 describe "install-skill.sh: all supported agents resolve correct subpaths"
 
 TMP=$(fresh_tmp); register_cleanup "$TMP"
 
-for agent_name in pi opencode claude; do
+for agent_name in pi opencode claude codex; do
     run --agent "$agent_name" --target-dir "$TMP" --skill "$SKILL_A" --dry-run
     assert_exit_code "exits 0 for agent $agent_name" "$_RC" "0"
     assert_contains  "output contains $TMP for $agent_name" "$_OUT" "$TMP"
 done
+
+describe "install-skill.sh: codex install into --target-dir"
+
+TMP=$(fresh_tmp); register_cleanup "$TMP"
+run --agent codex --target-dir "$TMP" --skill "$SKILL_A" --force
+assert_exit_code "exits 0" "$_RC" "0"
+assert_dir_exists "codex install dir created" "$TMP/.codex/skills"
+assert_symlink "codex skill is a symlink" "$TMP/.codex/skills/$SKILL_A"
+assert_symlink_target "codex symlink points to repo skills dir" \
+    "$TMP/.codex/skills/$SKILL_A" \
+    "$REPO_ROOT/skills/$SKILL_A"
 
 # ─── Summary ─────────────────────────────────────────────────────────────────
 print_summary

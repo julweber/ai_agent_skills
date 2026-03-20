@@ -3,7 +3,7 @@
 ################################################################################
 # install-skill.sh - Install AI agent skills for supported coding agents
 #
-# Supported Agents: opencode, pi, claude
+# Supported Agents: opencode, pi, claude, codex
 # Installation Method: Symlinks (default) or Copy mode
 #
 # Usage:
@@ -36,12 +36,14 @@ declare -A AGENT_LOCAL_SUBPATHS=(
     ["opencode"]=".opencode/skills"
     ["pi"]=".pi/skills"
     ["claude"]=".claude/skills"
+    ["codex"]=".codex/skills"
 )
 
 declare -A AGENT_GLOBAL_PATHS=(
     ["opencode"]="$HOME/.opencode/skills"
     ["pi"]="$HOME/.pi/agent/skills"
     ["claude"]="$HOME/.claude/skills"
+    ["codex"]="$HOME/.codex/skills"
 )
 
 # Installation mode: local or global
@@ -101,7 +103,7 @@ ARGUMENTS:
 
 OPTIONS:
     --agent AGENT         Specify the target agent (required unless interactive)
-                          Supported: opencode, pi, claude
+                          Supported: opencode, pi, claude, codex
     --target-dir DIR      Target project directory for local installation
                           (defaults to current working directory)
     --global              Install globally instead of project level
@@ -145,6 +147,7 @@ SUPPORTED AGENTS:
     opencode  - Install to <target-dir>/.opencode/skills/ or ~/.opencode/skills/ (global)
     pi        - Install to <target-dir>/.pi/skills/      or ~/.pi/agent/skills/  (global)
     claude    - Install to <target-dir>/.claude/skills/  or ~/.claude/skills/    (global)
+    codex     - Install to <target-dir>/.codex/skills/   or ~/.codex/skills/     (global)
 
   <target-dir> defaults to the current working directory when --global is not set.
 

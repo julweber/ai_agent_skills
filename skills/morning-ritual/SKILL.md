@@ -16,10 +16,12 @@ Activate when the user says things like:
 - "What's on my plate?"
 - "Morning ritual"
 
-## Vault Layout
+## Vault Configuration
 
-- **Vault path**: `/home/verfeinerer/main_vault`
-- **Obsidian CLI**: always use `obsidian --no-sandbox`
+| Setting | Value |
+|---------|-------|
+| **Vault path** | `$HOME/main_vault` |
+| **Obsidian CLI** | Always use `obsidian --no-sandbox` |
 - **Task files**:
   - `00-Tasks/01 - Tasks - Inbox.md` — general inbox (all mixed items)
   - `00-Tasks/10 - Tasks - Beruflich.md` — professional/work tasks
@@ -27,6 +29,8 @@ Activate when the user says things like:
   - `00-Tasks/06 - Tasks - Haus.md` — house/personal tasks
   - `00-Tasks/02 - Tasks - Recurring.md` — recurring tasks
   - `00-Tasks/00 - Tasks - Wichtig Urgent.md` — urgent / important items
+  - `TODOs - AKTUELL.md` — current high-priority TODOs (root of vault)
+  - `Work/HUK/` — work project tasks (HUK subfolder)
 
 ## The Morning Ritual Workflow
 
@@ -41,10 +45,10 @@ date +%Y-%m-%d
 ### Step 1 — Collect Open Tasks
 
 ```bash
-obsidian --no-sandbox tasks todo verbose=true
+obsidian --no-sandbox tasks todo verbose=true format=json
 ```
 
-Parse the output. Filter only incomplete tasks (lines starting with `- [ ]`).
+Parse the JSON output. Filter only incomplete tasks (lines starting with `- [ ]`).
 
 Group them:
 - **🔥 Urgent / High Priority**: tasks with `⏫` or `🔺` or `#urgent` or overdue dates
@@ -144,6 +148,7 @@ After presenting the briefing, offer these options:
 - **"add task [text]"** — add a new task to the inbox
 - **"save briefing"** — save the briefing as a note
 - **"Evening review"** — close the day (summarize what got done, what's still open)
+- **"Deeper analysis?"** or **"Full review"** — call `gtd-assistant` for comprehensive view including dangling thoughts and stub notes
 
 ## Marking Tasks Done
 
@@ -169,6 +174,33 @@ If the user asks for an evening review:
 4. Show what rolled over
 5. Ask: "What's the one thing for tomorrow?"
 6. Optionally save an evening note
+
+## Deeper Analysis: Calling `gtd-assistant`
+
+When a user needs more than just daily tasks — perhaps they feel overwhelmed, need to understand their full backlog, or want pattern recognition across their vault:
+
+### Trigger Phrases
+- "What's really blocking me?"
+- "I need a full review of my vault"
+- "Help me understand what's unfinished"
+- "Open loops sweep" (or similar GTD terminology)
+- "Deeper analysis" after morning briefing
+- "Weekly/Monthly review"
+
+### Implementation
+When these triggers are detected, switch to the `gtd-assistant` workflow:
+
+> "I'll now run a full GTD sweep using the gtd-assistant skill."
+
+Follow Phase 1 → Phase 2 → Phase 3 as defined in `gtd-assistant`. The current conversation context carries over — no data needs to be passed explicitly.
+
+The `gtd-assistant` will return a more detailed report including:
+- All open tasks by domain
+- Dangling thoughts from notes
+- Stub notes requiring attention
+- GTD analysis insights on consolidation opportunities
+- Pattern recognition across the vault
+
 
 ## Performance Notes
 
