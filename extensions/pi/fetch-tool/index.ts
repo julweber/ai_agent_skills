@@ -72,7 +72,7 @@ export default function (pi: ExtensionAPI) {
       ),
     }),
 
-    async execute(_toolCallId, params, signal, onUpdate, _ctx) {
+    async execute(_toolCallId, params, signal, _onUpdate, _ctx) {
       const {
         url: inputUrl,
         timeout = 20,
@@ -89,39 +89,39 @@ export default function (pi: ExtensionAPI) {
         normalizedUrl = `https://${inputUrl}`;
       }
 
-      const origin = new URL(normalizedUrl).origin;
-      let finalUrl = normalizedUrl;
-
-      // ── llms.txt discovery ──────────────────────────────────────────────
-      // Check .well-known/llmstxt only when not fetching raw HTML and the
-      // URL isn't already a markdown file.  Only trust responses that are
-      // genuinely plaintext/markdown (not HTML soft-404 pages).
-      if (!raw && !normalizedUrl.endsWith(".md")) {
-        try {
-          const llmsResponse = await fetchWithRetry(`${origin}/.well-known/llmstxt`, {
-            timeoutMs: 5_000,
-            maxRetries: 0, // quick probe, no retry
-            headers: { "User-Agent": USER_AGENT },
-            signal: signal ?? undefined,
-          });
-          const llmsContentType = llmsResponse.headers.get("content-type") ?? "";
-          const isRealTextContent =
-            llmsResponse.ok &&
-            !llmsContentType.includes("text/html") &&
-            (llmsContentType.includes("text/") ||
-              llmsContentType.includes("markdown") ||
-              llmsContentType === "");
-
-          if (isRealTextContent) {
-            finalUrl = `${origin}/.well-known/llmstxt`;
-            console.log(`[Fetch] Using llms.txt endpoint for ${normalizedUrl}`);
-          }
-        } catch {
-          // Probe failed — continue with the original URL
-        }
-      }
-
       try {
+        // Parse URL early — inside try/catch so invalid URLs are handled gracefully
+        const origin = new URL(normalizedUrl).origin;
+        let finalUrl = normalizedUrl;
+
+        // ── llms.txt discovery ──────────────────────────────────────────────
+        // Check .well-known/llmstxt only when not fetching raw HTML and the
+        // URL isn't already a markdown file.  Only trust responses that are
+        // genuinely plaintext/markdown (not HTML soft-404 pages).
+        if (!raw && !normalizedUrl.endsWith(".md")) {
+          try {
+            const llmsResponse = await fetchWithRetry(`${origin}/.well-known/llmstxt`, {
+              timeoutMs: 5_000,
+              maxRetries: 0, // quick probe, no retry
+              headers: { "User-Agent": USER_AGENT },
+              signal: signal ?? undefined,
+            });
+            const llmsContentType = llmsResponse.headers.get("content-type") ?? "";
+            const isRealTextContent =
+              llmsResponse.ok &&
+              !llmsContentType.includes("text/html") &&
+              (llmsContentType.includes("text/") ||
+                llmsContentType.includes("markdown") ||
+                llmsContentType === "");
+
+            if (isRealTextContent) {
+              finalUrl = `${origin}/.well-known/llmstxt`;
+              console.log(`[Fetch] Using llms.txt endpoint for ${normalizedUrl}`);
+            }
+          } catch {
+            // Probe failed — continue with the original URL
+          }
+        }
         // ── Stage 1: Fetch with retry + timeout ─────────────────────────
         const response = await fetchWithRetry(finalUrl, {
           timeoutMs:   timeout * 1_000,
@@ -211,8 +211,6 @@ export default function (pi: ExtensionAPI) {
 
         // ── Truncation (50 KB byte-accurate) ─────────────────────────────
         const finalContent = raw ? processedContent : truncateContent(processedContent, MAX_BYTES);
-
-        onUpdate("fetch", { url: finalUrl, method });
 
         return {
           content: [
