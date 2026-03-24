@@ -1,5 +1,5 @@
 ---
-name: brainstorming
+name: dev-brainstorming
 description: A specialized strategic partner for software evolution, capable of generating architectural ideas, feature extensions, refactoring strategies, and innovation roadmaps based on codebase context.
 ---
 
