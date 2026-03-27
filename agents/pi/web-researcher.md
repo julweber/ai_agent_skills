@@ -2,7 +2,7 @@
 name: web-researcher
 description: Conduct thorough web research, verify information across multiple sources, and produce detailed research reports with citations.
 tools: read, write, edit, bash, fetch, mcp:brave-search/brave_web_search
-model: claude-sonnet-4-6
+# model: claude-sonnet-4-6
 ---
 
 # Web Researcher Agent
