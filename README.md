@@ -325,3 +325,8 @@ Contributions are welcome! Please follow these steps:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+# Interesting external skills
+- [superpowers](https://github.com/obra/superpowers)
+- [agent-skill-creator](https://github.com/FrancyJGLisboa/agent-skill-creator)
+- [obsidian-skills](https://github.com/kepano/obsidian-skills)
