@@ -98,7 +98,16 @@ def load_index_yaml() -> dict:
 
     try:
         with open(index_path, 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
+            data = yaml.safe_load(f)
+            # Expand ~ to user's home directory for paths
+            expanded_data = {}
+            for key, value in data.items():
+                if isinstance(value, str) and value.startswith('~'):
+                    expanded_path = Path(value).expanduser()
+                    expanded_data[key] = str(expanded_path)
+                else:
+                    expanded_data[key] = value
+            return expanded_data
     except yaml.YAMLError as e:
         print(f"Error parsing index.yaml: {e}", file=sys.stderr)
         sys.exit(1)
@@ -111,7 +120,7 @@ def main():
         sys.exit(1)
 
     skill_group = sys.argv[1]
-    output_format = "xml"
+    output_format = "json"
 
     # Load index.yaml and look up skill group
     index_data = load_index_yaml()

@@ -1,2 +1,3 @@
-superpowers: /home/verfeinerer/dev/research/ai/superpowers/skills
-ai-agent-skills: /home/verfeinerer/dev/os_projects/ai_agent_skills/skills
+superpowers: ~/skills/superpowers/skills
+obsidian-skills: ~/skills/obsidian-skills/skills
+ai-agent-skills: ~/skills/ai_agent_skills/skills
