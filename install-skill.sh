@@ -40,7 +40,7 @@ declare -A AGENT_LOCAL_SUBPATHS=(
 )
 
 declare -A AGENT_GLOBAL_PATHS=(
-    ["opencode"]="$HOME/.opencode/skills"
+    ["opencode"]="$HOME/.config/opencode/skills"
     ["pi"]="$HOME/.pi/agent/skills"
     ["claude"]="$HOME/.claude/skills"
     ["codex"]="$HOME/.codex/skills"
