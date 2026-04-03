@@ -1,6 +1,6 @@
 ---
 name: morning-ritual
-description: Runs a structured morning work ritual for the user. Pulls open tasks from Obsidian, surfaces what's due today, highlights urgent items, identifies 1-3 focus tasks (MIT), and optionally saves a daily briefing note. Use when the user asks for their morning briefing, daily kickoff, what to work on today, or to start their workday. Activate when the user says "Good morning", "Morning briefing", "Daily Kickoff", "Morning ritual", "Start my day"
+description: Use when starting your workday with a structured Obsidian task briefing - automatically loads obsidian-cli and obsidian-markdown skills to parse vault tasks, surface urgent/due items, and identify 1-5 MIT focus tasks. Triggers on "Good morning", "Morning briefing", "Daily Kickoff", "What should I work on today"
 ---
 
 # Morning Ritual Workflow
@@ -18,34 +18,29 @@ Activate when the user says things like:
 
 ## Vault Configuration
 
-| Setting | Value |
-|---------|-------|
-| **Vault path** | `$HOME/main_vault` |
-| **Obsidian CLI** | Always use `obsidian --no-sandbox` |
-- **Task files**:
-  - `00-Tasks/01 - Tasks - Inbox.md` — general inbox (all mixed items)
-  - `00-Tasks/10 - Tasks - Beruflich.md` — professional/work tasks
-  - `00-Tasks/07 - Tasks - Music.md` — music & creative tasks
-  - `00-Tasks/06 - Tasks - Haus.md` — house/personal tasks
-  - `00-Tasks/02 - Tasks - Recurring.md` — recurring tasks
-  - `00-Tasks/00 - Tasks - Wichtig Urgent.md` — urgent / important items
-  - `TODOs - AKTUELL.md` — current high-priority TODOs (root of vault)
-  - `Work/HUK/` — work project tasks (HUK subfolder)
+| Setting          | Value                              |
+| ------------------| ------------------------------------|
+| **Vault path**   | `$HOME/main_vault`                 |
+| **Obsidian CLI** | ALWAYS use `obsidian --no-sandbox` |
+- **Main Task directory**:
+  - `00-Tasks/*.md` — categorized task definitions
 
 ## The Morning Ritual Workflow
-
 Run in this order. Be fast — use parallel reads where possible.
 
-### Step 0 - Get current date
+### Step 0 - Optional - Load Obsidian CLI Skill
+If you have an obsidian-cli skill: load the skill first before proceeding.
+
+### Step 1 - Get current date
 
 ```bash
 date +%Y-%m-%d
 ```
 
-### Step 1 — Collect Open Tasks
+### Step 2 — Collect Open Tasks
 
 ```bash
-obsidian --no-sandbox tasks todo verbose=true format=json
+obsidian --no-sandbox tasks todo verbose=false format=json
 ```
 
 Parse the JSON output. Filter only incomplete tasks (lines starting with `- [ ]`).
@@ -57,30 +52,30 @@ Group them:
 - **🏠 House & Personal**: tasks with `#haus`, `#task/haus`, from `06 - Tasks - Haus.md`
 - **📥 Inbox**: everything else from `01 - Tasks - Inbox.md` not yet categorized
 
-### Step 2 — Check for Due Today / Overdue
+### Step 3 — Check for Due Today / Overdue
 
 Scan for tasks containing today's date (format: `📅 YYYY-MM-DD`) or past dates that haven't been completed.
 
 Flag these as **⚠️ Due Today** or **🚨 Overdue**.
 
-### Step 3 — Pick the MIT (Most Important Tasks)
+### Step 4 — Pick the MIT (Most Important Tasks)
 
-Based on the collected tasks, suggest **1–3 MIT (Most Important Tasks)** for today. Use this logic:
+Based on the collected tasks, suggest **1–5 MIT (Most Important Tasks)** for today. Use this logic:
 1. Overdue items first
 2. Items marked `⏫` (urgent) or with today's date
 3. Work tasks over personal tasks (unless personal items are urgent)
 4. Prefer tasks that are actionable (not vague ideas)
 
-Present these as the **"Today's Focus"** block — the 1–3 things the user should commit to finishing today.
+Present these as the **"Today's Focus"** block — the 1–5 things the user should commit to finishing today.
 
-### Step 4 — Quick Stats
+### Step 5 — Quick Stats
 
 Show a brief summary:
 - Total open tasks (across all files)
 - How many are work vs personal vs creative
 - Anything overdue
 
-### Step 5 — Optional: Save Daily Briefing
+### Step 6 — Optional: Save Daily Briefing
 
 If the user asks to save/log the briefing, create a note:
 
