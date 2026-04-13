@@ -1,3 +1,5 @@
 superpowers: ~/skills/superpowers/skills
 obsidian-skills: ~/skills/obsidian-skills/skills
 ai-agent-skills: ~/skills/ai_agent_skills/skills
+streamlit-agent-skills: ~/skills/streamlit-agent-skills/developing-with-streamlit
+docker-development-skills: ~/skills/docker-development-skill/skills
