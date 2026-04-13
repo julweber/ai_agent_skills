@@ -1,365 +1,100 @@
 ---
 name: pi-subagents-master
-description: Expert guide for creating, editing, and improving pi agents and agent chains. Covers agent frontmatter, chain files, execution modes, management actions, and best practices from the pi-subagents extension.
+description: Expert guide for creating, running, and managing pi subagent configurations and multi-agent pipelines. Provides templates, examples, and step-by-step instructions for defining agent specifications and workflows using the pi-subagents extension.
 ---
 
 # Pi-SubAgents Master
 
-Specialized instructions for designing, implementing, and optimizing pi subagent configurations and multi-agent pipelines.
+Expert instructions for creating, running, and managing pi subagent configurations and multi-agent pipelines.
 
 ## When to Use This Skill
 
-Activate when:
-- Creating new agent definitions or chains
-- Editing existing agent frontmatter or system prompts
-- Designing multi-step agent pipelines
-- Troubleshooting agent execution issues
-- Optimizing agent performance and extension access
+Activate when the user wants to:
+- Create new agent definitions or chains
+- Run subagents to perform tasks
+- Design multi-step agent pipelines
+- Edit existing agent configurations
+- Execute parallel or sequential workflows
 
 ---
 
-## Agent Definition Format
+## Quick Start: Running a Subagent
 
-### Agent file locations
-
-| Scope   | Path                                                | Priority |
-| ---------| -----------------------------------------------------| ----------|
-| Builtin | `~/.pi/agent/extensions/subagent/agents/`           | Lowest   |
-| User    | `~/.pi/agent/agents/{name}.md`                      | Medium   |
-| Project | `.pi/agents/{name}.md` (searches up directory tree) | Highest  |
-
-### Basic Structure
-
-```markdown
----
-name: agent-name
-description: Clear description of what this agent does
-tools: read, bash, mcp:server-name  # Optional
-extensions: /path/to/ext.ts         # Optional (absent=all, empty=none)
-model: claude-sonnet-4              # Optional
-thinking: high                      # off, minimal, low, medium, high, xhigh
-skill: safe-bash, planning          # Comma-separated skills to inject
-output: context.md                  # Write results to file (relative or false)
-defaultReads: context.md            # Files to read before execution
-defaultProgress: true               # Enable progress tracking
-interactive: true                   # For TUI clarification
----
-
-Your system prompt goes here (markdown body after frontmatter).
-```
-
-### Frontmatter Fields Reference
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `name` | string | required | Agent identifier (lowercase-hyphenated) |
-| `description` | string | required | Clear usage description |
-| `tools` | string | all builtins | Comma-separated tool list, supports `mcp:` prefix |
-| `extensions` | absent/empty/csv | absent=all | Control extension sandboxing |
-| `model` | string | agent default | Override model (supports thinking suffix) |
-| `thinking` | enum | none | Extended thinking level (appended as `:level`) |
-| `skill` | string | none | Skills to inject into system prompt |
-| `output` | string/false | none | Write results to file |
-| `defaultReads` | string | none | Comma-separated files to read before execution |
-| `defaultProgress` | boolean | false | Enable progress.md tracking |
-
-### Extension Sandboxing
-
-```yaml
-# Absent: all extensions load (default)
-extensions:
-
-# Empty: no extensions
-extensions:
-
-# Allowlist specific extensions
-extensions: /abs/path/to/ext-a.ts, /path/to/ext-b.ts
-```
-
-**MCP Tools Integration:**
-```yaml
-# All tools from a server
-tools: read, bash, mcp:chrome-devtools
-
-# Specific tools from a server  
-tools: read, bash, mcp:github/search_repositories, mcp:github/get_file_contents
-```
-
-> **Note:** MCP integration requires [pi-mcp-adapter](https://github.com/nicobailon/pi-mcp-adapter) extension. First-run may need restart for tool discovery.
-
----
-
-## Chain Definition Format
-
-Chains define reusable multi-step pipelines in `.chain.md` files:
-
-```markdown
----
-name: scout-planner-pipeline
-description: Gather context then plan implementation
-scope: project  # user or project
----
-
-## scout
-output: context.md
-model: claude-haiku-4-5
-
-Analyze the codebase for {task} and extract relevant patterns.
-
-## planner
-reads: context.md
-progress: true
-
-Create an implementation plan based on {previous}. Prioritize tasks and identify dependencies.
-```
-
-
-### Chain file locations
-
-| Scope   | Path                                 |
-| ---------| --------------------------------------|
-| User    | `~/.pi/agent/agents/{name}.chain.md` |
-| Project | `.pi/agents/{name}.chain.md`         |
-
-### Chain Step Configuration
-
-Each `## agent-name` section supports these config lines immediately after the header:
-
-| Config | Description |
-|--------|-------------|
-| `output: file.md` | Write step results to file |
-| `output: false` | Disable file output, text-only |
-| `reads: file1.md+file2.md` | Read files before executing (use `+` as separator) |
-| `model: provider/name` | Override model for this step |
-| `skills: skill1+skill2` | Override skills for this step |
-| `progress: true/false` | Enable/disable progress tracking |
-
-### Chain Variables
-
-| Variable      | Description                                             |
-| ---------------| ---------------------------------------------------------|
-| `{task}`      | Original task from first step                           |
-| `{previous}`  | Output from prior step (or aggregated parallel outputs) |
-| `{chain_dir}` | Path to chain artifacts directory                       |
-
----
-
-## Execution Modes
-
-### Single Agent Mode
+The simplest way to run a subagent task:
 
 ```typescript
-// Basic execution
-{ agent: "scout", task: "Analyze the codebase" }
+subagent({
+  agent: "agent-name",
+  task: "Your task description here"
+})
+```
 
-// With overrides
-{ agent: "scout", 
-  task: "Find security issues",
-  output: "scan.md",
+### Single Agent Execution
+
+```typescript
+// Basic usage
+subagent({
+  agent: "scout",
+  task: "Analyze the codebase for authentication patterns"
+})
+
+// With output file
+subagent({
+  agent: "scout",
+  task: "Analyze auth patterns",
+  output: "auth-analysis.md"
+})
+
+// With model override
+subagent({
+  agent: "scout",
+  task: "Deep analysis of security",
   model: "anthropic/claude-sonnet-4",
-  skill: "safe-bash" }
+  skill: "safe-bash"
+})
 
-// Forked context (branched session from parent's current leaf)
-{ agent: "reviewer", task: "Review this diff", context: "fork" }
+// Forked context (branched session)
+subagent({
+  agent: "reviewer",
+  task: "Review this diff",
+  context: "fork"
+})
 ```
 
-### Chain Mode
+### Parallel Execution (Multiple Agents at Once)
 
 ```typescript
-// Sequential pipeline
-{ chain: [
-  { agent: "scout", task: "Gather context for auth refactor" },
-  { agent: "planner" },  // task defaults to {previous}
-  { agent: "worker", progress: true }
-]}
-
-// Chain with inline overrides
-{ chain: [
-  { agent: "scout", output: "context.md", task: "Scan for auth patterns" },
-  { agent: "planner", reads: ["context.md"], model: "claude-sonnet-4:high" }
-]}
-
-// Chain with parallel step (fan-out/fan-in)
-{ chain: [
-  { agent: "scout", task: "Gather context" },
-  { parallel: [
-    { agent: "worker", task: "Implement feature A based on {previous}" },
-    { agent: "worker", task: "Implement feature B based on {previous}" }
-  ], concurrency: 2, failFast: true },
-  { agent: "reviewer", task: "Review all changes from {previous}" }
-]}
-
-// Async chain execution
-{ chain: [...], clarify: false, async: true }
-```
-
-### Parallel Mode
-
-```typescript
-{ tasks: [
-  { agent: "scout", task: "Audit frontend" },
-  { agent: "reviewer", task: "Audit backend" }
-]}
-
-// With forked context (each task gets isolated branched session)
-{ tasks: [...], context: "fork" }
-```
-
----
-
-## Management Actions
-
-The LLM can discover, inspect, create, update, and delete agent/chain definitions:
-
-### List All Agents and Chains
-
-```typescript
-{ action: "list" }              // Both scopes (default)
-{ action: "list", agentScope: "project" }  // Project scope only
-{ action: "list", agentScope: "user" }     // User scope only
-```
-
-### Inspect Agent or Chain
-
-```typescript
-{ action: "get", agent: "scout" }
-{ action: "get", chainName: "review-pipeline" }
-```
-
-### Create New Agent
-
-```typescript
-{ action: "create", config: {
-  name: "Code Scout",
-  description: "Scans codebases for patterns and issues",
-  scope: "user",                // user or project
-  systemPrompt: "You are a code scout...",
-  model: "anthropic/claude-sonnet-4",
-  tools: "read, bash, mcp:github/search_repositories",
-  extensions: "",               // empty = no extensions
-  skills: "safe-bash",
-  thinking: "high",
-  output: "context.md",
-  defaultReads: "shared-context.md",
-  defaultProgress: true
-}}
-```
-
-### Update Existing Agent/Chain
-
-```typescript
-// Update agent fields (merge semantics)
-{ action: "update", agent: "scout", config: { 
-  model: "openai/gpt-4o" 
-}}
-
-// Clear optional fields
-{ action: "update", agent: "scout", config: { 
-  output: false, 
-  skills: "" 
-}}
-
-// Update chain steps
-{ action: "update", chainName: "review-pipeline", config: {
-  steps: [
-    { agent: "scout", task: "Scan {task}", output: "context.md" },
-    { agent: "reviewer", task: "Improved review of {previous}", reads: ["context.md"] }
+subagent({
+  tasks: [
+    { agent: "scout", task: "Audit frontend code" },
+    { agent: "scout", task: "Audit backend code" },
+    { agent: "reviewer", task: "Check security patterns" }
   ]
-}}
+})
 ```
 
-### Delete Definitions
+### Chain Execution (Sequential Pipeline)
 
 ```typescript
-{ action: "delete", agent: "scout" }
-{ action: "delete", chainName: "review-pipeline" }
+subagent({
+  chain: [
+    { agent: "scout", task: "Gather context for {task}" },
+    { agent: "planner", task: "Create plan based on {previous}" },
+    { agent: "worker", task: "Implement based on {previous}" }
+  ]
+})
 ```
 
----
-
-## Builtin Agents
-
-The extension ships with ready-to-use agents:
-- **scout**: Fast codebase reconnaissance
-- **planner**: Creates implementation plans
-- **worker**: Executes tasks
-- **reviewer**: Code review and analysis  
-- **context-builder**: Gathers context
-- **researcher**: Web research (requires pi-web-access)
-- **delegate**: General delegation
-
-Builtin agents have `[builtin]` badge and can be overridden by creating user/project agents with same name.
-
----
-
-## Best Practices
-
-### 1. Keep Agent Prompts Concise
-
-Only add context Claude doesn't already have. Challenge each piece: *"Does the agent really need this?"*
-
-### 2. Use Progressive Disclosure
-
-Keep SKILL.md under 500 lines. Split large content into referenced files:
-
-```markdown
-# PDF Processing
-
-## Quick start
-[code example]
-
-## Advanced features  
-- **Form filling**: See [FORMS.md](FORMS.md)
-- **API reference**: See [REFERENCE.md](REFERENCE.md)
-```
-
-### 3. Design for Reusability
-
-Chain files allow defining reusable pipelines:
-- Identify repetitive agent sequences
-- Extract common patterns into `.chain.md` files
-- Use `{task}`, `{previous}`, `{chain_dir}` variables effectively
-
-### 4. Leverage Extension Sandboxing
-
-Control extension access per agent:
-```yaml
-# Restrict to specific extensions
-extensions: /abs/path/to/ext-a.ts, /path/to/ext-b.ts
-
-# Disable all extensions for lean execution
-extensions:
-```
-
-### 5. Use Thinking Levels Appropriately
-
-The `thinking` field sets extended thinking level (appended as `:level` suffix):
-- **low**: Quick analysis
-- **medium**: Balanced reasoning  
-- **high**: Deep exploration
-- **xhigh**: Maximum deliberation
-
-### 6. Optimize Output Strategy
+### Async/Background Execution
 
 ```typescript
-// Agent writes to file for later reference
-{ agent: "scout", output: "context.md" }
-
-// Text-only for quick iteration
-{ agent: "scout", output: false }
-
-// Chain step passes output to next step
-{ chain: [
-  { agent: "scout", output: "scan.md" },
-  { agent: "reviewer", reads: ["scan.md"] }
-]}
-```
-
-### 7. Background Execution for Long Tasks
-
-```typescript
-// Async execution (non-blocking)
-{ agent: "scout", task: "Full security audit", clarify: false, async: true }
+// Non-blocking background execution
+subagent({
+  agent: "scout",
+  task: "Full security audit",
+  async: true,
+  clarify: false
+})
 
 // Check status later
 subagent_status({ id: "<runId>" })
@@ -367,159 +102,538 @@ subagent_status({ id: "<runId>" })
 
 ---
 
-## Common Patterns
+## Agent Discovery
 
-### Pattern 1: Scout-Plan-Implement Pipeline
+### Agent Locations (Priority: Highest to Lowest)
+
+| Scope   | Path                                         | Notes |
+|---------|----------------------------------------------|-------|
+| Project | `.pi/agents/{name}.md` (searches up)         | Highest priority |
+| User    | `~/.agents/{name}.md` or `~/.pi/agent/agents/{name}.md` | Medium |
+| Builtin | `~/.pi/agent/extensions/subagent/agents/`    | Lowest (can be overridden) |
+
+### List Available Agents
 
 ```typescript
-{ chain: [
-  { agent: "scout", task: "Analyze codebase for {task}", output: "context.md" },
-  { agent: "planner", reads: ["context.md"], progress: true },
-  { agent: "worker", reads: ["context.md", "plan.md"] }
-]}
+subagent({ action: "list" })
+subagent({ action: "list", agentScope: "project" })  // Project scope only
+subagent({ action: "list", agentScope: "user" })     // User scope only
 ```
 
-### Pattern 2: Parallel Audit with Review
+### Inspect an Agent
 
 ```typescript
-{ chain: [
-  { agent: "scout", task: "Gather context" },
-  { parallel: [
-    { agent: "scout", task: "Audit frontend from {previous}" },
-    { agent: "scout", task: "Audit backend from {previous}" }
-  ]},
-  { agent: "reviewer", reads: ["context.md"], task: "Review all findings" }
-]}
+subagent({ action: "get", agent: "scout" })
 ```
 
-### Pattern 3: Forked Context for Branch Analysis
+### Builtin Agents
+
+The extension ships with these ready-to-use agents:
+- **scout**: Fast codebase reconnaissance
+- **planner**: Creates implementation plans
+- **worker**: Executes tasks
+- **reviewer**: Code review and analysis
+- **context-builder**: Gathers context
+- **researcher**: Web research (requires pi-web-access)
+- **delegate**: General delegation
+
+---
+
+## Creating New Agents
+
+### Method 1: Using Management Action (Recommended)
 
 ```typescript
-{ chain: [
-  { agent: "scout", task: "Analyze current branch changes" },
-  { agent: "planner", task: "Plan next steps from {previous}" }
-], context: "fork"}
+subagent({
+  action: "create",
+  config: {
+    name: "code-analyzer",
+    description: "Analyzes code for patterns, bugs, and improvement opportunities",
+    scope: "user",                    // or "project"
+    systemPrompt: `You are a code analyst specialized in...
+    
+    Your role is to:
+    1. Read and understand the code
+    2. Identify patterns and anti-patterns
+    3. Find potential bugs or issues
+    4. Suggest improvements
+    
+    Be thorough but concise in your analysis.`,
+    model: "anthropic/claude-sonnet-4",
+    tools: "read, bash",
+    skills: "safe-bash",
+    thinking: "high"
+  }
+})
+```
+
+### Method 2: Create Agent File Directly
+
+Create a file at `~/.agents/code-analyzer.md`:
+
+```markdown
+---
+name: code-analyzer
+description: Analyzes code for patterns, bugs, and improvements
+tools: read, bash
+model: anthropic/claude-sonnet-4
+skill: safe-bash
+thinking: high
+---
+
+You are a code analyst specialized in...
+
+Your role is to:
+1. Read and understand the code
+2. Identify patterns and anti-patterns
+3. Find potential bugs or issues
+4. Suggest improvements
+
+Be thorough but concise in your analysis.
+```
+
+### Agent Frontmatter Reference
+
+```yaml
+---
+name: agent-name              # Required: unique identifier
+description: What it does     # Required: clear description
+tools: read, bash             # Optional: comma-separated tools
+                               #   Use mcp:server/tool for MCP tools
+extensions: /path/to/ext.ts   # Optional: absent=all, empty=none
+model: provider/model         # Optional: override default model
+thinking: high                # Optional: off, minimal, low, medium, high, xhigh
+skill: skill-name             # Optional: skills to inject
+output: results.md            # Optional: write results to file
+defaultReads: context.md      # Optional: files to read before execution
+defaultProgress: true         # Optional: enable progress.md tracking
+maxSubagentDepth: 1           # Optional: limit nested subagents
+---
+
+Your system prompt goes here.
+```
+
+---
+
+## Creating Agent Chains (Workflows)
+
+### Method 1: Using Management Action (Recommended)
+
+```typescript
+subagent({
+  action: "create",
+  config: {
+    name: "research-analyze-plan",
+    description: "Research topic, analyze findings, create action plan",
+    scope: "user",
+    steps: [
+      { agent: "researcher", task: "Research {task}" },
+      { agent: "planner", task: "Analyze {previous} and create plan" },
+      { agent: "worker", task: "Execute first step from {previous}" }
+    ]
+  }
+})
+```
+
+### Method 2: Create Chain File Directly
+
+Create a file at `~/.agents/research-analyze-plan.chain.md`:
+
+```markdown
+---
+name: research-analyze-plan
+description: Research topic, analyze findings, create action plan
+---
+
+## researcher
+model: anthropic/claude-haiku-4-5
+
+Research {task} thoroughly. Look for:
+- Key concepts and definitions
+- Best practices and common approaches
+- Potential challenges and solutions
+
+## planner
+output: plan.md
+progress: true
+
+Based on the research ({previous}), create an actionable plan.
+Format the plan with clear steps and priorities.
+
+## worker
+reads: plan.md
+
+Execute the first step from the plan.
+```
+
+### Chain Variables
+
+| Variable | Description |
+|----------|-------------|
+| `{task}` | Original task passed to the chain |
+| `{previous}` | Output from the previous step |
+| `{chain_dir}` | Path to chain artifacts directory |
+
+### Chain Step Configuration
+
+Each `## agent-name` section supports:
+
+```markdown
+## agent-name
+output: output-file.md    # Write results to file
+reads: input1.md,input2.md # Read files before executing
+model: anthropic/claude-sonnet-4  # Override model
+skills: skill1,skill2     # Add/override skills
+progress: true            # Enable progress tracking
+```
+
+---
+
+## Running Custom Workflows
+
+### Running a Custom Chain by Name
+
+```typescript
+subagent({
+  chainName: "research-analyze-plan",
+  task: "How to implement authentication in React"
+})
+```
+
+### Inline Custom Workflow
+
+```typescript
+subagent({
+  chain: [
+    { agent: "researcher", task: "Research {task}" },
+    { agent: "planner", task: "Create plan based on {previous}" }
+  ],
+  task: "Implementing JWT auth in Node.js"
+})
+```
+
+### Parallel Fan-Out with Aggregation
+
+```typescript
+subagent({
+  chain: [
+    { agent: "scout", task: "Gather context" },
+    {
+      parallel: [
+        { agent: "worker", task: "Implement feature A from {previous}" },
+        { agent: "worker", task: "Implement feature B from {previous}" },
+        { agent: "worker", task: "Implement feature C from {previous}" }
+      ],
+      concurrency: 2,  // Run 2 at a time
+      failFast: true   // Stop if any fails
+    },
+    { agent: "reviewer", task: "Review all changes" }
+  ]
+})
+```
+
+### Forked Context for Branch Analysis
+
+```typescript
+subagent({
+  chain: [
+    { agent: "scout", task: "Analyze main branch" },
+    { agent: "scout", task: "Analyze feature branch" },
+    { agent: "diff-analyzer", task: "Compare {previous}" }
+  ],
+  context: "fork"
+})
+```
+
+---
+
+## Managing Agents and Chains
+
+### List All Agents and Chains
+
+```typescript
+subagent({ action: "list" })
+```
+
+### Get Agent/Chain Details
+
+```typescript
+subagent({ action: "get", agent: "scout" })
+subagent({ action: "get", chainName: "research-pipeline" })
+```
+
+### Update an Agent
+
+```typescript
+subagent({
+  action: "update",
+  agent: "scout",
+  config: {
+    model: "anthropic/claude-sonnet-4",
+    thinking: "high"
+  }
+})
+```
+
+### Update a Chain
+
+```typescript
+subagent({
+  action: "update",
+  chainName: "research-pipeline",
+  config: {
+    description: "Updated description",
+    steps: [
+      { agent: "researcher", task: "New task for researcher" },
+      { agent: "planner", task: "Updated planner task" }
+    ]
+  }
+})
+```
+
+### Delete an Agent or Chain
+
+```typescript
+subagent({ action: "delete", agent: "my-agent" })
+subagent({ action: "delete", chainName: "my-chain" })
+```
+
+---
+
+## Practical Examples
+
+### Example 1: Code Review Pipeline
+
+```typescript
+// Run a code review workflow
+subagent({
+  chain: [
+    { agent: "scout", task: "Scan codebase for {task}", output: "issues.md" },
+    { agent: "reviewer", reads: ["issues.md"], task: "Review and prioritize issues from {previous}" },
+    { agent: "worker", reads: ["issues.md"], task: "Fix the top 3 issues identified in {previous}" }
+  ],
+  task: "authentication module"
+})
+```
+
+### Example 2: Parallel Security Audit
+
+```typescript
+// Run multiple security checks in parallel
+subagent({
+  tasks: [
+    { agent: "scout", task: "Check for SQL injection vulnerabilities", output: "sql-audit.md" },
+    { agent: "scout", task: "Check for XSS vulnerabilities", output: "xss-audit.md" },
+    { agent: "scout", task: "Check for authentication issues", output: "auth-audit.md" },
+    { agent: "scout", task: "Check for authorization issues", output: "authz-audit.md" }
+  ]
+})
+```
+
+### Example 3: Research and Document
+
+```typescript
+// Research a topic and create documentation
+subagent({
+  action: "create",
+  config: {
+    name: "research-doc",
+    description: "Research a topic and create documentation",
+    scope: "user",
+    steps: [
+      { agent: "researcher", task: "Research {task} comprehensively" },
+      { agent: "worker", task: "Create documentation from {previous}", output: "docs.md" }
+    ]
+  }
+})
+
+// Run it
+subagent({
+  chainName: "research-doc",
+  task: "microservices architecture patterns"
+})
+```
+
+### Example 4: Background Long-Running Task
+
+```typescript
+// Start a long audit in background
+subagent({
+  agent: "scout",
+  task: "Complete security audit of entire codebase",
+  async: true,
+  clarify: false
+})
+
+// Later check status
+subagent_status({ id: "abc123" })
+```
+
+---
+
+## Execution Modes Reference
+
+### Mode Selection
+
+| Mode | Trigger | Description |
+|------|---------|-------------|
+| **single** | `agent` + `task` | Run one agent with task |
+| **parallel** | `tasks` array | Run multiple agents concurrently |
+| **chain** | `chain` array | Sequential pipeline with {previous} |
+| **chainName** | Name reference | Run saved chain definition |
+
+### Key Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `agent` | string | Agent name to execute |
+| `task` | string | Task description |
+| `tasks` | array | Parallel task configurations |
+| `chain` | array | Chain step configurations |
+| `chainName` | string | Name of saved chain to run |
+| `output` | string/false | Output file path |
+| `model` | string | Model override |
+| `skill` | string/array | Skills to inject |
+| `context` | "fork"/"fresh" | Execution context mode |
+| `async` | boolean | Background execution |
+| `clarify` | boolean | Show TUI before execution |
+| `share` | boolean | Share session via Gist |
+| `sessionDir` | string | Custom session directory |
+| `maxOutput` | object | `{bytes, lines}` limits |
+| `artifacts` | boolean | Enable artifact capture |
+
+---
+
+## MCP Tools Integration
+
+```yaml
+# All tools from an MCP server
+tools: read, bash, mcp:chrome-devtools
+
+# Specific tools from an MCP server
+tools: read, bash, mcp:github/search_repositories, mcp:github/get_file_contents
+```
+
+> **Note:** MCP integration requires [pi-mcp-adapter](https://github.com/nicobailon/pi-mcp-adapter) extension. Restart pi after first connection to cache tool metadata.
+
+---
+
+## Extension Sandboxing
+
+```yaml
+# Absent: all extensions load (default behavior)
+extensions:
+
+# Empty string: no extensions load
+extensions:
+
+# Explicit list: only these extensions
+extensions: /abs/path/to/ext-a.ts, /path/to/ext-b.ts
+```
+
+---
+
+## Best Practices
+
+### 1. Keep Agent Prompts Focused
+Include only context the agent doesn't already have.
+
+### 2. Use Output Files for Chain Steps
+Enable {previous} chaining by writing outputs:
+```typescript
+{ agent: "scout", output: "context.md" }
+{ agent: "planner", reads: ["context.md"] }
+```
+
+### 3. Design Reusable Chains
+Identify common patterns and extract them into `.chain.md` files.
+
+### 4. Use Thinking Levels Appropriately
+```yaml
+thinking: low    # Quick analysis
+thinking: high   # Deep exploration
+thinking: xhigh  # Maximum deliberation
+```
+
+### 5. Leverage Parallel Execution
+Use `tasks` for independent work:
+```typescript
+tasks: [
+  { agent: "scout", task: "Audit frontend" },
+  { agent: "scout", task: "Audit backend" }
+]
+```
+
+### 6. Use Async for Long Tasks
+```typescript
+{ agent: "scout", task: "Full audit", async: true, clarify: false }
 ```
 
 ---
 
 ## Troubleshooting
 
-### MCP Tools Not Available on First Run
-
-**Symptom:** `mcp:` tools fail or return empty results
-
-**Solution:** Restart pi after first connection to cache tool metadata. After restart, direct tools become available.
-
-### Agent Discovery Fails
-
-**Symptom:** "Agent not found" error
-
-**Checklist:**
-- Verify agent name matches exactly (case-sensitive)
-- Confirm file is in correct location (`~/.pi/agent/agents/` or `.pi/agents/`)
-- Check YAML frontmatter has `name` field defined
+### Agent Not Found
+- Check agent name matches exactly (case-sensitive)
+- Verify file is in correct location
+- Confirm YAML frontmatter has `name` field
 - Restart pi if newly created agent doesn't appear
 
-### Chain Execution Hangs
-
-**Symptom:** Foreground execution waits indefinitely
-
-**Solution:** 
-- Add `clarify: false, async: true` for background execution
-- Use `--bg` flag with slash commands
-- Check for infinite loops in `{previous}` chain logic
+### Chain Execution Issues
+- First step must have explicit task (no {previous} reference)
+- Use `clarify: false` to skip TUI confirmation
+- Check chain artifacts at `<tmpdir>/pi-chain-runs/`
 
 ### Output File Not Written
-
-**Symptom:** Expected output file doesn't exist
-
-**Checklist:**
 - Verify `output` field is set (not `false`)
-- Check relative vs absolute path behavior
 - For chains, ensure step has explicit `output:` config
-- Look in `{sessionDir}/subagent-artifacts/` for debug artifacts
+- Check `{sessionDir}/subagent-artifacts/` for debug files
 
 ---
 
-## Slash Commands Reference
+## Quick Reference
 
-| Command | Description |
-|---------|-------------|
-| `/run <agent> <task>` | Run single agent with task |
-| `/chain agent1 "t1" -> agent2 "t2"` | Sequential chain with per-step tasks |
-| `/parallel agent1 "t1" -> agent2 "t2"` | Parallel execution with per-step tasks |
-| `/agents` | Open Agents Manager TUI (Ctrl+Shift+A) |
-
-**Inline Config Overrides:**
-```
-/run scout[model=claude-sonnet-4] "analyze this"
-/chain scout[output=context.md] "scan" -> planner[reads=context.md] "plan"
-```
-
----
-
-## Artifacts and Observability
-
-### Debug Artifacts Location
-`{sessionDir}/subagent-artifacts/` or `<tmpdir>/pi-subagent-artifacts/`
-
-Per-task files:
-- `{runId}_{agent}_input.md` - Task prompt
-- `{runId}_{agent}_output.md` - Full output (untruncated)  
-- `{runId}_{agent}.jsonl` - Event stream (sync only)
-- `{runId}_{agent}_meta.json` - Timing, usage, exit code
-
-### Chain Artifacts
-`<tmpdir>/pi-chain-runs/{runId}/` containing:
-- `context.md`, `plan.md`, `progress.md` as written by agents
-- `parallel-{stepIndex}/` subdirectories for parallel outputs
-- Auto-cleaned after 24 hours
-
----
-
-## Session Management
-
-### Session Logs
-JSONL session files stored under per-run directory. Path shown in output.
-
-When `context: "fork"` is used, each child run starts with a real branched session from parent's current leaf (not injected summary text).
-
-### Session Sharing
+**Run Single Agent:**
 ```typescript
-{ agent: "scout", task: "...", share: true }
+subagent({ agent: "scout", task: "Your task" })
 ```
-Exports full session to HTML and uploads to GitHub Gist. Returns shareable URL.
 
-**Requirements:** `gh` CLI installed and authenticated (`gh auth login`).
+**Run Parallel Tasks:**
+```typescript
+subagent({ tasks: [{ agent: "a", task: "t1" }, { agent: "b", task: "t2" }] })
+```
 
----
+**Run Chain:**
+```typescript
+subagent({ chain: [{ agent: "a", task: "t1" }, { agent: "b" }] })
+```
 
-## Key Files Reference
+**Create Agent:**
+```typescript
+subagent({ action: "create", config: { name: "...", description: "...", scope: "user", systemPrompt: "..." } })
+```
 
-| File | Purpose |
-|------|---------|
-| `index.ts` | Main extension, tool registration |
-| `agents.ts` | Agent + chain discovery, frontmatter parsing |
-| `skills.ts` | Skill resolution and caching |
-| `settings.ts` | Chain behavior resolution, templates |
-| `chain-clarify.ts` | TUI for preview/editing before execution |
-| `chain-execution.ts` | Sequential + parallel orchestration |
-| `async-execution.ts` | Background execution support |
-| `agent-manager.ts` | Overlay orchestrator and CRUD operations |
+**Create Chain:**
+```typescript
+subagent({ action: "create", config: { name: "...", description: "...", scope: "user", steps: [{ agent: "a", task: "t1" }] } })
+```
 
----
+**List Agents:**
+```typescript
+subagent({ action: "list" })
+```
 
-## Quick Reference Card
+**Get Agent Details:**
+```typescript
+subagent({ action: "get", agent: "agent-name" })
+```
 
-**Agent Frontmatter Keys:** name, description, tools, extensions, model, thinking, skill, output, defaultReads, defaultProgress
+**Update Agent:**
+```typescript
+subagent({ action: "update", agent: "agent-name", config: { model: "new-model" } })
+```
 
-**Chain Variables:** `{task}`, `{previous}`, `{chain_dir}`
-
-**Execution Context Modes:** `fresh` (default, clean session), `fork` (branched from parent's current leaf)
-
-**Thinking Levels:** off, minimal, low, medium, high, xhigh
-
-**Management Actions:** list, get, create, update, delete
-
-**Background Execution:** Add `clarify: false, async: true` or use `--bg` flag
+**Delete Agent:**
+```typescript
+subagent({ action: "delete", agent: "agent-name" })
+```
