@@ -5,14 +5,7 @@ These are implemented to be used exclusively by AI agents like opencode, Claude 
 
 ## Overview
 
-The repository is organized into:
-
-- **Skills Directory** (`skills/`): 29+ specialized agent skills for various domains (CLI tooling, file organization, system monitoring, documentation generation, infrastructure, testing, Obsidian vault management, AI agents)
-- **Agents Directory** (`agents/`): Agent configuration templates and implementations (summarizer, web-researcher)
-- **Extensions Directory** (`extensions/`): Custom tool extensions for AI agents (fetch-tool for Pi coding agent)
-- **Ralph Loop Implementation** (`ralph/`): Autonomous development loop for `opencode` with PRD generation and JSON conversion
-
-It also contains an implementation of the ralph loop for `opencode`. For more information on using the ralph loop see [ralph/README.md](ralph/README.md).
+This repository provides 32 specialized skills, agent configurations, and extensions for AI coding agents including opencode, Claude Code, pi, and others. Skills cover CLI tooling, file organization, system monitoring, knowledge management, infrastructure automation, and development strategy.
 
 ## Quick Start with an AI Agent
 
@@ -128,131 +121,107 @@ The linked skills will automatically be available to your Claude agent.
 
 ---
 
-## Skills Directory Structure
+## Directory Structure
 
-```
-.
-├── README.md                       # This file
-├── AGENTS.md                       # Agent development guidelines
-├── .gitignore                      # Git ignore rules (opencode, claude configs)
-├── ralph/                          # Ralph loop implementation for opencode
-│   ├── README.md                   # Ralph loop setup and usage guide
-│   └── opencode-ralph.sh           # Main script to start autonomous development loop
-├── skills/                         # AI agent skill implementations (29+ skills)
-│   ├── ai-agent-skills-assistant/  # Assistant skill for navigating the AI Agent Skills repository
-│   ├── ansible/                    # Ansible automation reference with Proxmox/Docker integration
-│   ├── brainstorming/              # Architectural ideation and innovation strategy
-│   ├── claude-cli/                 # Expert Claude Code CLI control: sessions, MCP servers, plugins, authentication
-│   ├── code-summarizer/            # Codebase summarization from local directories or GitHub/GitLab URLs
-│   ├── codex-cli/                  # Codex CLI expert: exec, review, login/logout, MCP server management
-│   ├── file-organizer/             # Intelligent file/folder organization tool
-│   ├── frontend-web-developer/     # Full-stack web development: React, Next.js, Tailwind CSS
-│   ├── github-cli/                 # GitHub CLI (gh) expert: PRs, issues, repos, workflows, releases
-│   ├── gtd-assistant/              # GTD-style productivity assistant with open loop collection and brainstorming
-│   ├── list-large-files/           # Lists top N largest files in directory tree
-│   ├── list-most-intensive-processes/  # System process monitoring by resource usage
-│   ├── llama-cpp/                  # llama.cpp tooling: llama-server, llama-cli, local LLM inference with GPU acceleration
-│   ├── morning-ritual/             # Structured morning work ritual: pulls open tasks from Obsidian, highlights focus items
-│   ├── nextcloud-cli/              # Nextcloud CLI sync tool (nextcloudcmd) for file synchronization management
-│   ├── obsidian-master/            # Obsidian vault control via CLI (read/edit/search/links/tasks)
-│   ├── obsidian-open-loops-collector/  # Collects open loops from Obsidian vault: tasks, TODOs, stub notes
-│   ├── opencode-agent-creator/     # Create/configure Opencode agents (primary/subagents)
-│   ├── opencode-cli/               # Expert opencode CLI control: TUI, server, web UI, sessions, providers, models
-│   ├── pi-cli/                     # Pi coding agent CLI expert: launch sessions, manage extensions/packages, switch models
-│   ├── product-prd-brainstorming/  # Generate PRDs with Mermaid system diagrams
-│   ├── python-api-developer/       # Python API development guidance and best practices
-│   ├── ralph-prd-converter/        # Convert markdown PRDs to Ralph's JSON format
-│   ├── ralph-prd-generator/        # Generate detailed PRDs with user stories and criteria
-│   ├── rest-testssuite/            # REST API testsuites organization and generation
-│   ├── skill-creator/              # Guide for creating new AI agent skills
-│   ├── terraform/                  # Terraform/OpenTofu guidance, testing, CI/CD, security
-│   ├── tmux/                       # Remote tmux session control: send keystrokes, scrape pane output
-│   └── trello-cli/                 # Trello CLI expert: manage boards/cards/lists programmatically via JSON
-├── agents/                         # Agent configuration templates
-│   └── pi/                         # Pi agent configurations
-│       ├── summarizer.md           # Research summarization and synthesis agent
-│       └── web-researcher.md       # Comprehensive web research and analysis agent
-├── extensions/                     # Custom tool extensions for AI agents
-│   └── pi/                         # Extensions specifically for the Pi coding agent
-│       ├── fetch-tool/             # Hybrid URL fetching with content detection and rendering
-│       │   ├── index.ts            # Main extension entry point with multi-method content handling
-│       │   ├── utils/helpers.ts    # Utility functions for content type detection
-│       │   └── README.md           # Detailed documentation for fetch-tool
-├── install-agent.sh                # Agent installer for Pi coding agent configurations
-├── install-extension.sh            # Extension installer for Pi coding agent extensions
-├── install-skill.sh                # Skill installer for all supported agents
-└── docs/                           # Research and review documents (untracked)
-    ├── llama-bench-research.md     # LLM benchmark research findings
-    ├── review-march-26-qwen35.md   # Qwen 3.5 model review and analysis
-    └── typescript-fetch-research.md # TypeScript URL fetching implementation research
-```
+The repository is organized into logical sections for different agent capabilities:
+
+- **`skills/`** — Individual skill implementations (one directory per skill with `SKILL.md` documentation and supporting scripts)
+- **`agents/`** — Agent configuration templates for various coding agents (currently supports Pi)
+- **`extensions/`** — Custom tool extensions that augment agent capabilities
+- **`ralph/`** — Autonomous development loop implementation for opencode
+- **`docs/`** — Research documents and analysis (untracked in main repo)
+- **`prompts/`** — Reusable prompt templates
+- **`tests/`** — Bash test suite for install scripts
+- Root-level installers (`install-skill.sh`, `install-agent.sh`, `install-extension.sh`) for easy setup
 
 ## Available Skills
 
-### CLI Tool Expertise
-| Skill | Description |
-|-------|-------------|
-| **claude-cli** | Expert Claude Code CLI control: sessions, MCP servers, plugins, authentication, and all commands/flags/options |
-| **codex-cli** | Codex CLI expert: exec, review, login/logout, MCP server management, sandbox modes, and usage patterns |
-| **github-cli** | GitHub CLI (gh) expert: PRs, issues, repositories, workflows, releases, and programmatic JSON operations |
-| **opencode-cli** | Expert opencode CLI control: TUI, headless server, web UI, sessions, providers, agents, models, stats, import/export, debugging |
-| **pi-cli** | Pi coding agent CLI expert: launch sessions, manage extensions/packages, switch models, configure tools, export sessions |
-| **trello-cli** | Trello CLI power user: execute commands, parse JSON output, manage boards/cards/lists programmatically |
-| **nextcloud-cli** | Nextcloud sync tool (nextcloudcmd) control for file synchronization with remote servers |
-| **tmux** | Remote tmux session control: send keystrokes to interactive CLIs, scrape pane output |
-| **llama-cpp** | llama.cpp expert: llama-server, llama-cli, local LLM inference with GPU acceleration, model loading from Hugging Face/Docker Hub |
+The repository contains 32 specialized skills organized by domain:
 
-### File & System Organization
-| Skill | Description |
-|-------|-------------|
-| **file-organizer** | Intelligently organizes files and folders by understanding context, finding duplicates, suggesting better structures, and automating cleanup tasks |
-| **list-large-files** | Lists the top N largest files in a given directory using Python traversal |
-| **list-most-intensive-processes** | Lists the top N most intensive processes based on CPU time and memory usage |
+### Coding Agent CLIs
+These skills provide expert control over specific coding agent CLI tools.
 
-### Web Development
 | Skill | Description |
 |-------|-------------|
-| **frontend-web-developer** | Full-stack web development expertise: React patterns, Next.js conventions, Tailwind CSS v4, and modern frontend best practices with comprehensive reference materials |
-| **python-api-developer** | Python API development guidance: REST APIs, FastAPI/Flask frameworks, authentication, testing, deployment patterns |
+| **claude-cli** | Complete Claude Code CLI: sessions, MCP servers, plugins, authentication, all commands/flags/options |
+| **codex-cli** | Codex CLI expert: exec, review, login/logout, MCP server management, sandbox modes |
+| **opencode-cli** | Expert opencode CLI: TUI, server, web UI, sessions, providers, agents, models, import/export |
+| **pi-cli** | Pi coding agent CLI: launch sessions, manage extensions/packages, switch models, configure tools |
 
-### Obsidian Knowledge Management
-| Skill | Description |
-|-------|-------------|
-| **obsidian-master** | Complete Obsidian vault control via CLI: file operations (read/create/edit/move/delete), searches, links/backlinks analysis, properties/metadata management, task handling, history versions, and plugin/theme administration. Includes extensive reference documentation for all capabilities |
-| **obsidian-open-loops-collector** | Collects open loops from Obsidian vault: tasks from 00-Tasks/, dangling thoughts (TODO/idea/later/?), stub notes (<10 lines) for GTD-style reflection |
+### Infrastructure & DevOps CLIs
+CLI skills for infrastructure management and CI/CD pipelines.
 
-### Product & PRD Management
 | Skill | Description |
 |-------|-------------|
-| **product-prd-brainstorming** | Guides users through structured brainstorming to create complete Product Requirements Documents with Mermaid system architecture diagrams |
-| **ralph-prd-generator** | Generates detailed PRDs with clarifying questions, user stories, and acceptance criteria |
-| **ralph-prd-converter** | Converts markdown PRDs to Ralph's JSON format (`tasks/prd.json`) for autonomous execution |
+| **ansible** | Ansible automation: playbooks, roles, inventory; Proxmox VE and Docker integration |
+| **concourse-ci** | Concourse CI/CD pipelines: pipelines, resources, jobs, worker configuration |
+| **github-actions-cicd** | GitHub Actions workflows: runners, actions, deployment strategies, best practices |
+| **github-cli** | GitHub CLI (gh): PRs, issues, repos, workflows, releases, programmatic JSON operations |
+| **terraform** | Terraform/OpenTofu: modules, testing, CI/CD, security scanning (trivy/checkov) |
 
-### Skill & Agent Creation
-| Skill | Description |
-|-------|-------------|
-| **skill-creator** | Guide for creating effective skills that extend agent capabilities with specialized knowledge and workflows |
-| **opencode-agent-creator** | Expert guide for creating, configuring, and managing Opencode Agents (primary/subagents) |
+### System & Productivity CLIs
+CLI tools for system management and productivity.
 
-### Infrastructure & Testing
 | Skill | Description |
 |-------|-------------|
-| **terraform** | Terraform & OpenTofu guidance: modules, testing, CI/CD, security scanning (trivy/checkov), production patterns |
-| **ansible** | Ansible automation reference for playbooks, roles, inventory, variables; includes Proxmox VE and Docker integration |
-| **rest-testssuite** | Organizes REST API testsuites, generates CRUD test files |
+| **gtd-assistant** | GTD productivity: open loop collection, brainstorming for actionable next steps |
+| **list-large-files** | List top N largest files in directory tree (Python-based) |
+| **list-most-intensive-processes** | List top N processes by CPU time and memory usage |
+| **tmux-specialist** | Complete tmux: sessions/windows/panes, scripting, automation, plugins, config |
+| **uv** | uv Python manager: fast installs, virtualenvs, script execution |
 
-### Strategic Development & Productivity
-| Skill | Description |
-|-------|-------------|
-| **brainstorming** | Principal Engineer and Product Strategist: architectural ideas, feature extensions, refactoring strategies, innovation roadmaps |
-| **code-summarizer** | Codebase summarization from local directories or GitHub/GitLab URLs: architecture, core concepts, key features, problems & solutions |
-| **gtd-assistant** | GTD-style productivity assistant combining open loop collection with intelligent brainstorming for actionable next steps and priorities |
-| **morning-ritual** | Structured morning work ritual: pulls open tasks from Obsidian, surfaces due items, highlights urgent tasks, identifies 1-3 MITs (Most Important Tasks) |
+### External Service CLIs
+CLI tools for interacting with external services and platforms.
 
-### Repository Assistant
 | Skill | Description |
 |-------|-------------|
-| **ai-agent-skills-assistant** | Expert assistant for navigating the AI Agent Skills repository. Helps install skills/agents/extensions and provides guidance on available capabilities by gathering information from installed directories |
+| **gws-cli** | Google Workspace CLI: Gmail, Drive, Calendar automation |
+| **hf-cli** | Hugging Face CLI: model download/upload, inference, dataset management |
+| **llama-cpp** | llama.cpp expert: llama-server, llama-cli, local LLM inference with GPU acceleration |
+| **nextcloud-cli** | Nextcloud sync (nextcloudcmd): file synchronization with remote servers |
+| **trello-cli** | Trello CLI: boards/cards/lists management via JSON operations |
+
+### Knowledge Management
+Skills for organizing and managing knowledge bases.
+
+| Skill | Description |
+|-------|-------------|
+| **code-summarizer** | Codebase summarization from local dirs or GitHub/GitLab URLs |
+| **morning-ritual** | Structured morning ritual: pull tasks from Obsidian, surface due/urgent items, identify MITs |
+| **obsidian-master** | Complete Obsidian vault control via CLI: read/edit/search/links/tasks/properties/plugins |
+| **obsidian-open-loops-collector** | Collect open loops from Obsidian: tasks, TODOs, dangling thoughts, stub notes |
+
+### Development Tools & Strategy
+Skills for development workflows and strategic planning.
+
+| Skill | Description |
+|-------|-------------|
+| **ai-agent-skills-assistant** | Navigate the AI Agent Skills repo: install skills/agents/extensions, discover capabilities |
+| **dev-brainstorming** | Principal Engineer/Strategist: architectural ideas, feature extensions, refactoring, innovation |
+| **file-organizer** | Intelligent file/folder organization: context awareness, duplicates, structure suggestions |
+| **frontend-web-developer** | Full-stack web dev: React, Next.js, Tailwind CSS v4, modern frontend best practices |
+| **opencode-agent-creator** | Create/manage Opencode Agents (primary/subagents) |
+| **pi-subagents-master** | Create/manage pi subagent configurations and multi-agent pipelines |
+| **product-prd-brainstorming** | Generate PRDs with Mermaid system architecture diagrams |
+| **python-api-developer** | Python API development: REST, FastAPI/Flask, auth, testing, deployment |
+| **ralph-prd-converter** | Convert markdown PRDs to Ralph's JSON format for autonomous execution |
+| **ralph-prd-generator** | Generate detailed PRDs with questions, user stories, acceptance criteria |
+| **rest-testssuite** | REST API testsuites: organization, CRUD test file generation |
+| **skill-loader** | Discover skills from custom local skill collections in specific directories |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 
