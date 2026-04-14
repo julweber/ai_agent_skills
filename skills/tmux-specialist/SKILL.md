@@ -43,6 +43,7 @@ Read the relevant reference file(s) **before** answering any question or executi
 | `scripts/find-sessions.sh` | List sessions on one socket or scan all sockets |
 | `scripts/session-layout.sh` | Create named multi-pane layouts (dev, monitor, grid4, triple-h, triple-v, custom) |
 | `scripts/tmux-snapshot.sh` | Dump all pane scrollbacks to files or stdout |
+| `scripts/session-watch.sh` | Watch and display status of all panes in a multi-agent session (updates every 60s by default) |
 
 ---
 
@@ -104,6 +105,16 @@ tmux -S "$SOCKET" capture-pane -p -J -t "$SESSION":main.0 -S -200
 ./scripts/tmux-snapshot.sh -S "$SOCKET" -o /tmp/snapshots "$SESSION"
 ```
 
+### Watch a multi-agent session
+
+Monitor all panes in a session with periodic status updates:
+
+```bash
+./scripts/session-watch.sh -S "$SOCKET" -s "pi-multiagent" -i 30
+```
+
+This displays a formatted table showing the last non-empty line from each pane (truncated to 40 chars), updated every N seconds. Ideal for watching multi-agent workflows where different panes run parallel tasks.
+
 ### Find sessions across all sockets
 
 ```bash
@@ -122,6 +133,50 @@ tmux -S "$SOCKET" send-keys -t TARGET Enter
 ```
 
 Control keys: `C-c` (interrupt), `C-d` (EOF), `C-l` (clear), `Escape`, `Tab`, `BSpace`, `F1`–`F12`.
+
+---
+
+---
+
+## Session Watching
+
+The `session-watch.sh` script provides a convenient way to monitor multi-agent tmux sessions with a formatted display that shows the current state of each pane at regular intervals.
+
+### Basic Usage
+
+```bash
+./scripts/session-watch.sh [OPTIONS]
+```
+
+**Options:**
+- `-S, --socket-path` — tmux socket path (default: `/tmp/pi-tmux-sockets/pi.sock`)
+- `-s, --session`     — session name (default: `pi-multiagent`)
+- `-i, --interval`    — update interval in seconds (default: 60)
+- `-h, --help`        — show usage information
+
+**Example:**
+```bash
+# Watch with default settings
+./scripts/session-watch.sh
+
+# Custom socket and session
+./scripts/session-watch.sh -S /tmp/my.sock -s mysession
+
+# Update every 15 seconds
+./scripts/session-watch.sh -i 15
+```
+
+**Output Format:**
+The script displays a table with:
+- Timestamp of each update
+- Pane index and label (0=Dev, 1=QA, 2=QA)
+- Last non-empty line from each pane (truncated to 40 characters)
+- Context usage from tmux environment variable `#E`
+
+**Use Cases:**
+- Monitoring parallel agent tasks running in separate panes
+- Quick status checks without attaching to the session
+- Watching long-running workflows in a read-only manner
 
 ---
 
