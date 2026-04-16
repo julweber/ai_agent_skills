@@ -201,7 +201,7 @@ get_available_extensions() {
     fi
 
     for ext_path in "$EXTENSIONS_DIR"/*/; do
-        if [[ -f "${ext_path}index.ts" ]]; then
+        if [[ -f "${ext_path}index.ts" || -f "${ext_path}auth.js" ]]; then
             extensions+=("$(basename "$ext_path")")
         fi
     done
@@ -286,11 +286,6 @@ validate_extension() {
 
     if [[ ! -d "$ext_path" ]]; then
         print_error "Extension directory not found: $ext_path"
-        return 1
-    fi
-
-    if [[ ! -f "$ext_path/index.ts" ]]; then
-        print_error "Invalid extension '$ext_name': missing required index.ts"
         return 1
     fi
 
