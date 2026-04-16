@@ -23,6 +23,7 @@ obsidian --no-sandbox search query="machine learning" limit=10
 
 - **[SKILL.md](SKILL.md)** - Main skill documentation with overview and quick start examples
 - **references/** - Detailed command reference for specific feature categories:
+  - [Vault Structure Guide](references/vault-structure-guide.md) - **Read this first.** How Obsidian organizes information, note anatomy, knowledge graph navigation, and decision trees for finding content
   - [File Operations](references/file-operations.md) - Read, create, edit, move, delete files
   - [Search & Discovery](references/search-discovery.md) - Search vault, tags, daily notes, discovery tools
   - [Link Analysis](references/link-analysis.md) - Backlinks, dead ends, orphans, unresolved links

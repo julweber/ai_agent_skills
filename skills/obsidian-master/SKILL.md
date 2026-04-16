@@ -7,6 +7,20 @@ description: Controls Obsidian vault via CLI. Performs file operations (read/cre
 
 A skill to control and interact with your Obsidian vault through the Obsidian CLI.
 
+## Vault Structure Primer
+
+**Before performing any vault operations, understand how Obsidian organizes information.**
+
+See [Vault Structure Guide](references/vault-structure-guide.md) for the complete reference. Key concepts:
+
+- A vault is a **folder of `.md` files** — no database, just files
+- Each note has three layers: **properties** (YAML frontmatter), **content** (markdown body), **connections** (wikilinks `[[]]`)
+- Notes connect via `[[wikilinks]]` creating a **bidirectional knowledge graph** (outgoing links + backlinks)
+- Organization uses **folders** (broad categories), **tags** (`#label`), **properties** (structured metadata), and **links** (relationships) — often all four simultaneously
+- **MOCs** (Maps of Content) are curated index notes — the best entry points for a topic
+- Always discover vault structure first: check tags, properties, and hub notes before diving in
+- Always count results with `total=true` before pulling full lists
+
 ## When to Use This Skill
 
 Use this skill when you need to:
@@ -28,6 +42,11 @@ Use this skill when you need to:
   - if there are more than 50 findings, notify the user about it
 
 ## Core Operations
+
+### Vault Structure & Navigation
+Understand how the vault organizes information before performing operations. Learn about note anatomy (properties, content, links), the knowledge graph, organizational patterns (PARA, Zettelkasten, MOCs), and how to find information effectively.
+
+**Reference**: See [Vault Structure Guide](references/vault-structure-guide.md) for the complete structural reference and navigation decision trees.
 
 ### File Management
 Read content, create new notes, edit existing files, rename/move files, or delete notes.

@@ -13,7 +13,7 @@ This repository ships an [Agent Skills](https://agentskills.io)-compatible skill
 
 Point your agent at the skill file:
 ```
-skills/ai-agent-skills-assistant/SKILL.md
+read the skill definition in skills/ai-agent-skills-assistant/SKILL.md and guide me through using this repository
 ```
 
 The agent will read the README and discover available scripts on its own, then guide you interactively.
@@ -35,6 +35,9 @@ Use the provided installation script for an easy, guided experience:
 ```
 
 #### Installing Extensions
+
+##### Extensions Disclaimer
+Most of the extensions stem from the [ai-agent-extensions](https://github.com/jayshah5696/pi-agent-extensions).
 
 For coding agent extensions:
 
@@ -162,13 +165,13 @@ CLI skills for infrastructure management and CI/CD pipelines.
 ### System & Productivity CLIs
 CLI tools for system management and productivity.
 
-| Skill | Description |
-|-------|-------------|
-| **gtd-assistant** | GTD productivity: open loop collection, brainstorming for actionable next steps |
-| **list-large-files** | List top N largest files in directory tree (Python-based) |
-| **list-most-intensive-processes** | List top N processes by CPU time and memory usage |
-| **tmux-specialist** | Complete tmux: sessions/windows/panes, scripting, automation, plugins, config |
-| **uv** | uv Python manager: fast installs, virtualenvs, script execution |
+| Skill                             | Description                                                                     |
+| -----------------------------------| ---------------------------------------------------------------------------------|
+| **gtd-assistant**                 | GTD productivity: open loop collection, brainstorming for actionable next steps |
+| **list-large-files**              | List top N largest files in directory tree (Python-based)                       |
+| **list-most-intensive-processes** | List top N processes by CPU time and memory usage                               |
+| **tmux-specialist**               | Complete tmux: sessions/windows/panes, scripting, automation, plugins, config   |
+| **uv**                            | uv Python manager: fast installs, virtualenvs, script execution                 |
 
 ### External Service CLIs
 CLI tools for interacting with external services and platforms.
@@ -194,34 +197,20 @@ Skills for organizing and managing knowledge bases.
 ### Development Tools & Strategy
 Skills for development workflows and strategic planning.
 
-| Skill | Description |
-|-------|-------------|
-| **ai-agent-skills-assistant** | Navigate the AI Agent Skills repo: install skills/agents/extensions, discover capabilities |
-| **dev-brainstorming** | Principal Engineer/Strategist: architectural ideas, feature extensions, refactoring, innovation |
-| **file-organizer** | Intelligent file/folder organization: context awareness, duplicates, structure suggestions |
-| **frontend-web-developer** | Full-stack web dev: React, Next.js, Tailwind CSS v4, modern frontend best practices |
-| **opencode-agent-creator** | Create/manage Opencode Agents (primary/subagents) |
-| **pi-subagents-master** | Create/manage pi subagent configurations and multi-agent pipelines |
-| **product-prd-brainstorming** | Generate PRDs with Mermaid system architecture diagrams |
-| **python-api-developer** | Python API development: REST, FastAPI/Flask, auth, testing, deployment |
-| **ralph-prd-converter** | Convert markdown PRDs to Ralph's JSON format for autonomous execution |
-| **ralph-prd-generator** | Generate detailed PRDs with questions, user stories, acceptance criteria |
-| **rest-testssuite** | REST API testsuites: organization, CRUD test file generation |
-| **skill-loader** | Discover skills from custom local skill collections in specific directories |
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+| Skill                         | Description                                                                                     |
+| -------------------------------| -------------------------------------------------------------------------------------------------|
+| **ai-agent-skills-assistant** | Navigate the AI Agent Skills repo: install skills/agents/extensions, discover capabilities      |
+| **dev-brainstorming**         | Principal Engineer/Strategist: architectural ideas, feature extensions, refactoring, innovation |
+| **file-organizer**            | Intelligent file/folder organization: context awareness, duplicates, structure suggestions      |
+| **frontend-web-developer**    | Full-stack web dev: React, Next.js, Tailwind CSS v4, modern frontend best practices             |
+| **opencode-agent-creator**    | Create/manage Opencode Agents (primary/subagents)                                               |
+| **pi-subagents-master**       | Create/manage pi subagent configurations and multi-agent pipelines                              |
+| **product-prd-brainstorming** | Generate PRDs with Mermaid system architecture diagrams                                         |
+| **python-api-developer**      | Python API development: REST, FastAPI/Flask, auth, testing, deployment                          |
+| **ralph-prd-converter**       | Convert markdown PRDs to Ralph's JSON format for autonomous execution                           |
+| **ralph-prd-generator**       | Generate detailed PRDs with questions, user stories, acceptance criteria                        |
+| **rest-testssuite**           | REST API testsuites: organization, CRUD test file generation                                    |
+| **skill-loader**              | Discover skills from custom local skill collections in specific directories                     |
 
 ---
 
