@@ -18,18 +18,19 @@ Activate when the user says things like:
 
 ## Vault Configuration
 
-| Setting          | Value                              |
-| ------------------| ------------------------------------|
-| **Vault path**   | `$HOME/main_vault`                 |
-| **Obsidian CLI** | ALWAYS use `obsidian --no-sandbox` |
+| Setting          | Value              |
+| ------------------| --------------------|
+| **Vault path**   | `$HOME/main_vault` |
+| **Obsidian CLI** | `obsidian`         |
 - **Main Task directory**:
   - `00-Tasks/*.md` — categorized task definitions
 
 ## The Morning Ritual Workflow
 Run in this order. Be fast — use parallel reads where possible.
 
-### Step 0 - Optional - Load Obsidian CLI Skill
-If you have an obsidian-cli skill: load the skill first before proceeding.
+### Step 0 - Load Obsidian CLI Skills first
+- If you have the `obsidian-cli` agent skill: load the `obsidian-cli` skill
+- If you have the `obsidian-master` agent skill: load the `obsidian-master` skill
 
 ### Step 1 - Get current date
 
@@ -40,7 +41,7 @@ date +%Y-%m-%d
 ### Step 2 — Collect Open Tasks
 
 ```bash
-obsidian --no-sandbox tasks todo verbose=false format=json
+obsidian tasks todo verbose=false format=json
 ```
 
 Parse the JSON output. Filter only incomplete tasks (lines starting with `- [ ]`).
@@ -80,7 +81,7 @@ Show a brief summary:
 If the user asks to save/log the briefing, create a note:
 
 ```bash
-obsidian --no-sandbox create name="Daily Briefing YYYY-MM-DD" content="[full briefing content]"
+obsidian create name="Daily Briefing YYYY-MM-DD" content="[full briefing content]"
 ```
 
 Use today's date. Store in the vault root or wherever the user prefers.
@@ -149,7 +150,7 @@ After presenting the briefing, offer these options:
 
 ```bash
 # Mark a specific task done in a file
-obsidian --no-sandbox tasks:update file="00-Tasks/01 - Tasks - Inbox.md" line=[LINE_NUMBER] status=x
+obsidian tasks:update file="00-Tasks/01 - Tasks - Inbox.md" line=[LINE_NUMBER] status=x
 ```
 
 Always confirm before marking done.
@@ -157,7 +158,7 @@ Always confirm before marking done.
 ## Adding a New Task
 
 ```bash
-obsidian --no-sandbox append file="00-Tasks/01 - Tasks - Inbox.md" content="\n- [ ] [new task text]"
+obsidian append file="00-Tasks/01 - Tasks - Inbox.md" content="\n- [ ] [new task text]"
 ```
 
 ## Evening Review (optional extension)

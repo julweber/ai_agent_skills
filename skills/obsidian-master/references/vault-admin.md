@@ -7,7 +7,7 @@ Complete documentation for vault administration, plugins, themes, and advanced o
 ### Get Vault Info
 Retrieve statistics and details about your current vault.
 ```bash
-obsidian --no-sandbox vault \
+obsidian vault \
   info=name|path|files|folders|size
 ```
 
@@ -22,19 +22,19 @@ obsidian --no-sandbox vault \
 **Examples:**
 ```bash
 # Get full vault information
-obsidian --no-sandbox vault
+obsidian vault
 
 # Just get file count
-obsidian --no-sandbox vault info=files
+obsidian vault info=files
 
 # Check storage usage
-obsidian --no-sandbox vault info=size
+obsidian vault info=size
 ```
 
 ### List Known Vaults
 See all vaults configured in Obsidian.
 ```bash
-obsidian --no-sandbox vaults \
+obsidian vaults \
   [options]
 ```
 
@@ -45,34 +45,34 @@ obsidian --no-sandbox vaults \
 **Example:**
 ```bash
 # List all known vaults with paths
-obsidian --no-sandbox vaults verbose=true format=json
+obsidian vaults verbose=true format=json
 ```
 
 ### Switch Between Vaults
 Target a specific vault for operations.
 ```bash
-obsidian --no-sandbox <command> vault=<vault-name> [other-options]
+obsidian <command> vault=<vault-name> [other-options]
 ```
 
 **Example:**
 ```bash
 # Get file count from "Personal" vault
-obsidian --no-sandbox files vault="Personal" total=true
+obsidian files vault="Personal" total=true
 
 # Search in "Work" vault only
-obsidian --no-sandbox search query="meeting notes" vault="Work" limit=10
+obsidian search query="meeting notes" vault="Work" limit=10
 ```
 
 ### Reload Vault
 Refresh the vault without restarting Obsidian.
 ```bash
-obsidian --no-sandbox reload
+obsidian reload
 ```
 
 ### Restart Obsidian
 Completely restart the application.
 ```bash
-obsidian --no-sandbox restart
+obsidian restart
 ```
 
 ## Plugin Management
@@ -80,7 +80,7 @@ obsidian --no-sandbox restart
 ### List Installed Plugins
 Get overview of all plugins in your vault.
 ```bash
-obsidian --no-sandbox plugins \
+obsidian plugins \
   [options]
 ```
 
@@ -92,16 +92,16 @@ obsidian --no-sandbox plugins \
 **Examples:**
 ```bash
 # List all community plugins with versions
-obsidian --no-sandbox plugins filter=community versions=true format=json
+obsidian plugins filter=community versions=true format=json
 
 # Get only core plugins
-obsidian --no-sandbox plugins filter=core format=json
+obsidian plugins filter=core format=json
 ```
 
 ### List Enabled Plugins
 See which plugins are currently active.
 ```bash
-obsidian --no-sandbox plugins:enabled \
+obsidian plugins:enabled \
   [options]
 ```
 
@@ -112,7 +112,7 @@ obsidian --no-sandbox plugins:enabled \
 #### Enable Plugin
 Activate a plugin.
 ```bash
-obsidian --no-sandbox plugin:enable \
+obsidian plugin:enable \
   id="<plugin-id>" \
   filter=core|community
 ```
@@ -120,7 +120,7 @@ obsidian --no-sandbox plugin:enable \
 #### Disable Plugin
 Deactivate a plugin.
 ```bash
-obsidian --no-sandbox plugin:disable \
+obsidian plugin:disable \
   id="<plugin-id>" \
   filter=core|community
 ```
@@ -132,16 +132,16 @@ obsidian --no-sandbox plugin:disable \
 **Examples:**
 ```bash
 # Enable Dataview community plugin
-obsidian --no-sandbox plugin:enable id="dataview" filter=community
+obsidian plugin:enable id="dataview" filter=community
 
 # Disable a specific core plugin
-obsidian --no-sandbox plugin:disable id="canvas" filter=core
+obsidian plugin:disable id="canvas" filter=core
 ```
 
 ### Install Community Plugin
 Add new community plugin to your vault.
 ```bash
-obsidian --no-sandbox plugin:install \
+obsidian plugin:install \
   id="<plugin-id>" \
   enable              # Optional: enable immediately after install
 ```
@@ -153,13 +153,13 @@ obsidian --no-sandbox plugin:install \
 **Example:**
 ```bash
 # Install and enable Calendar plugin
-obsidian --no-sandbox plugin:install id="calendar" enable=true
+obsidian plugin:install id="calendar" enable=true
 ```
 
 ### Uninstall Community Plugin
 Remove a community plugin.
 ```bash
-obsidian --no-sandbox plugin:uninstall \
+obsidian plugin:uninstall \
   id="<plugin-id>"
 ```
 
@@ -169,13 +169,13 @@ obsidian --no-sandbox plugin:uninstall \
 **Example:**
 ```bash
 # Remove unused plugin
-obsidian --no-sandbox plugin:uninstall id="unused-plugin-id"
+obsidian plugin:uninstall id="unused-plugin-id"
 ```
 
 ### Reload Plugin (Developer Mode)
 Force reload a plugin without restarting Obsidian.
 ```bash
-obsidian --no-sandbox plugin:reload \
+obsidian plugin:reload \
   id="<plugin-id>"
 ```
 
@@ -185,7 +185,7 @@ obsidian --no-sandbox plugin:reload \
 ### Get Plugin Info
 Retrieve details about specific plugin.
 ```bash
-obsidian --no-sandbox plugin \
+obsidian plugin \
   id="<plugin-id>"
 ```
 
@@ -194,20 +194,20 @@ obsidian --no-sandbox plugin \
 ### List Installed Themes
 See available themes in your vault.
 ```bash
-obsidian --no-sandbox themes \
+obsidian themes \
   versions              # Optional: include version numbers
 ```
 
 **Example:**
 ```bash
 # List all installed themes with versions
-obsidian --no-sandbox themes versions=true format=json
+obsidian themes versions=true format=json
 ```
 
 ### Get Theme Information
 View details about a specific theme.
 ```bash
-obsidian --no-sandbox theme \
+obsidian theme \
   name="<theme-name>"
 ```
 
@@ -217,16 +217,16 @@ obsidian --no-sandbox theme \
 **Examples:**
 ```bash
 # See info about "Minimal" theme
-obsidian --no-sandbox theme name="Minimal"
+obsidian theme name="Minimal"
 
 # Check currently active theme
-obsidian --no-sandbox theme
+obsidian theme
 ```
 
 ### Set Active Theme
 Switch to a different theme.
 ```bash
-obsidian --no-sandbox theme:set \
+obsidian theme:set \
   name="<theme-name>"
 ```
 
@@ -236,16 +236,16 @@ obsidian --no-sandbox theme:set \
 **Examples:**
 ```bash
 # Switch to Minimal theme
-obsidian --no-sandbox theme:set name="Minimal"
+obsidian theme:set name="Minimal"
 
 # Revert to default Obsidian theme
-obsidian --no-sandbox theme:set name=""
+obsidian theme:set name=""
 ```
 
 ### Install Community Theme
 Add new theme from community.
 ```bash
-obsidian --no-sandbox theme:install \
+obsidian theme:install \
   name="<theme-name>" \
   enable              # Optional: activate immediately
 ```
@@ -257,13 +257,13 @@ obsidian --no-sandbox theme:install \
 **Example:**
 ```bash
 # Install and activate One Dark theme
-obsidian --no-sandbox theme:install name="One Dark" enable=true
+obsidian theme:install name="One Dark" enable=true
 ```
 
 ### Uninstall Theme
 Remove a theme from your vault.
 ```bash
-obsidian --no-sandbox theme:uninstall \
+obsidian theme:uninstall \
   name="<theme-name>"
 ```
 
@@ -273,7 +273,7 @@ obsidian --no-sandbox theme:uninstall \
 **Example:**
 ```bash
 # Remove unused theme
-obsidian --no-sandbox theme:uninstall name="Old Theme"
+obsidian theme:uninstall name="Old Theme"
 ```
 
 ## CSS Snippets
@@ -281,13 +281,13 @@ obsidian --no-sandbox theme:uninstall name="Old Theme"
 ### List Installed Snippets
 See available custom CSS snippets.
 ```bash
-obsidian --no-sandbox snippets
+obsidian snippets
 ```
 
 ### List Enabled Snippets
 Check which snippets are currently active.
 ```bash
-obsidian --no-sandbox snippets:enabled
+obsidian snippets:enabled
 ```
 
 ### Enable/Disable Snippet
@@ -295,14 +295,14 @@ obsidian --no-sandbox snippets:enabled
 #### Enable CSS Snippet
 Activate a snippet.
 ```bash
-obsidian --no-sandbox snippet:enable \
+obsidian snippet:enable \
   name="<snippet-name>"
 ```
 
 #### Disable CSS Snippet
 Deactivate a snippet.
 ```bash
-obsidian --no-sandbox snippet:disable \
+obsidian snippet:disable \
   name="<snippet-name>"
 ```
 
@@ -311,14 +311,14 @@ obsidian --no-sandbox snippet:disable \
 ### List Available Templates
 See templates configured in your vault.
 ```bash
-obsidian --no-sandbox templates \
+obsidian templates \
   total               # Optional: return count only
 ```
 
 ### Read Template Content
 Get template content without inserting it.
 ```bash
-obsidian --no-sandbox template:read \
+obsidian template:read \
   name="<template-name>" \
   resolve             # Optional: resolve variables
   title="<title>"     # Optional: for variable resolution context
@@ -332,14 +332,14 @@ obsidian --no-sandbox template:read \
 ### Insert Template into Active File
 Apply a template to current note.
 ```bash
-obsidian --no-sandbox template:insert \
+obsidian template:insert \
   name="<template-name>"
 ```
 
 **Example:**
 ```bash
 # Apply meeting notes template
-obsidian --no-sandbox template:insert name="meeting-notes"
+obsidian template:insert name="meeting-notes"
 ```
 
 ## Bases & Queries
@@ -347,13 +347,13 @@ obsidian --no-sandbox template:insert name="meeting-notes"
 ### List Base Files
 Find files configured as bases (structured databases).
 ```bash
-obsidian --no-sandbox bases
+obsidian bases
 ```
 
 ### Create Item in Base
 Add new entry to a base database.
 ```bash
-obsidian --no-sandbox base:create \
+obsidian base:create \
   file="<base-file>" \
   view="<view-name>" \
   name="<item-name>" \
@@ -373,7 +373,7 @@ obsidian --no-sandbox base:create \
 ### Query Base Database
 Extract data from a base using its views.
 ```bash
-obsidian --no-sandbox base:query \
+obsidian base:query \
   file="<base-file>" \
   view="<view-name>" \
   format=json|csv|tsv|md|paths
@@ -387,7 +387,7 @@ obsidian --no-sandbox base:query \
 ### List Views in Base
 See available views for a base file.
 ```bash
-obsidian --no-sandbox base:views \
+obsidian base:views \
   file="<base-file>"
 ```
 
@@ -396,7 +396,7 @@ obsidian --no-sandbox base:views \
 ### Execute Obsidian Command
 Run any Obsidian command by its ID.
 ```bash
-obsidian --no-sandbox command \
+obsidian command \
   id="<command-id>"
 ```
 
@@ -407,29 +407,29 @@ obsidian --no-sandbox command \
 **Example:**
 ```bash
 # Open command palette
-obsidian --no-sandbox command id="app:open-command-palette"
+obsidian command id="app:open-command-palette"
 
 # Toggle sidebar
-obsidian --no-sandbox command id="editor:toggle-left-sidebar"
+obsidian command id="editor:toggle-left-sidebar"
 ```
 
 ### List Available Commands
 Discover command IDs for execution.
 ```bash
-obsidian --no-sandbox commands \
+obsidian commands \
   filter="<prefix>"     # Optional: filter by ID prefix
 ```
 
 **Example:**
 ```bash
 # List all editor commands
-obsidian --no-sandbox commands filter="editor:"
+obsidian commands filter="editor:"
 ```
 
 ### Get Hotkey Information
 Find keyboard shortcut for a command.
 ```bash
-obsidian --no-sandbox hotkey \
+obsidian hotkey \
   id="<command-id>" \
   verbose             # Optional: show if custom or default
 ```
@@ -441,7 +441,7 @@ obsidian --no-sandbox hotkey \
 ### List All Hotkeys
 Get overview of keyboard shortcuts.
 ```bash
-obsidian --no-sandbox hotkeys \
+obsidian hotkeys \
   total               # Optional: return count only
   verbose             # Optional: show custom status
   format=json|tsv|csv
@@ -454,41 +454,41 @@ obsidian --no-sandbox hotkeys \
 Assess vault condition and connectivity.
 ```bash
 # Get basic stats
-obsidian --no-sandbox vault info=files
-obsidian --no-sandbox vault info=folders
+obsidian vault info=files
+obsidian vault info=folders
 
 # Check for broken links
-obsidian --no-sandbox unresolved total=true
+obsidian unresolved total=true
 
 # Find isolated content
-obsidian --no-sandbox deadends total=true
-obsidian --no-sandbox orphans total=true
+obsidian deadends total=true
+obsidian orphans total=true
 ```
 
 ### Plugin Management Routine
 Maintain plugin ecosystem.
 ```bash
 # List community plugins
-obsidian --no-sandbox plugins filter=community format=json
+obsidian plugins filter=community format=json
 
 # Enable specific plugin
-obsidian --no-sandbox plugin:enable id="dataview" filter=community
+obsidian plugin:enable id="dataview" filter=community
 
 # Install new plugin with auto-enable
-obsidian --no-sandbox plugin:install id="calendar" enable=true
+obsidian plugin:install id="calendar" enable=true
 ```
 
 ### Theme Switching Workflow
 Change appearance systematically.
 ```bash
 # See available themes
-obsidian --no-sandbox themes versions=true format=json
+obsidian themes versions=true format=json
 
 # Apply new theme
-obsidian --no-sandbox theme:set name="Minimal"
+obsidian theme:set name="Minimal"
 
 # Verify current theme
-obsidian --no-sandbox theme
+obsidian theme
 ```
 
 ## Edge Cases & Best Practices

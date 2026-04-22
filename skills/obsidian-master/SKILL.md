@@ -82,30 +82,29 @@ Manage vault info, switch between vaults, handle plugins/themes, access template
 
 ```bash
 # Read a note by name or path
-obsidian --no-sandbox read file="My Note"
+obsidian read file="My Note"
 
 # Create a new note with content
-obsidian --no-sandbox create name="New Project" content="# New Project\n\nStarted today."
+obsidian create name="New Project" content="# New Project\n\nStarted today."
 
 # Find all backlinks to a specific note
-obsidian --no-sandbox backlinks file="Research" counts=true format=json
+obsidian backlinks file="Research" counts=true format=json
 
 # Search vault for text
-obsidian --no-sandbox search query="machine learning" limit=50
+obsidian search query="machine learning" limit=50
 
 # Set a property on a file
-obsidian --no-sandbox property:set name="status" value="in-progress" type=text file="Note.md"
+obsidian property:set name="status" value="in-progress" type=text file="Note.md"
 
 # List tasks marked as todo
-obsidian --no-sandbox tasks done=false verbose=true format=json
+obsidian tasks done=false verbose=true format=json
 
 # Find files with no outgoing links (dead ends)
-obsidian --no-sandbox deadends total=true
+obsidian deadends total=true
 ```
 
 ## Important Notes
 
-- All CLI commands require the `--no-sandbox` flag
 - Most commands default to the active file when path is omitted
 - Use JSON output format (`format=json`) for programmatic parsing
 - Quote values with spaces: `name="My Note"`

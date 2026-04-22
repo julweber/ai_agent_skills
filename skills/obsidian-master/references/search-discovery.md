@@ -6,7 +6,7 @@ Complete documentation for searching and discovering content in Obsidian.
 
 ### Basic Search
 ```bash
-obsidian --no-sandbox search \
+obsidian search \
   query="<search-text>" \
   [options]
 ```
@@ -22,19 +22,19 @@ obsidian --no-sandbox search \
 **Examples:**
 ```bash
 # Simple search
-obsidian --no-sandbox search query="machine learning"
+obsidian search query="machine learning"
 
 # Limit results and use JSON format
-obsidian --no-sandbox search query="API design" limit=5 format=json
+obsidian search query="API design" limit=5 format=json
 
 # Case-sensitive search in specific folder
-obsidian --no-sandbox search query="React" case=true path="Projects/"
+obsidian search query="React" case=true path="Projects/"
 ```
 
 ### Search with Context
 Get matching lines with surrounding context.
 ```bash
-obsidian --no-sandbox search:context \
+obsidian search:context \
   query="<search-text>" \
   [options]
 ```
@@ -46,14 +46,14 @@ obsidian --no-sandbox search:context \
 **Example:**
 ```bash
 # Find "authentication" with surrounding context
-obsidian --no-sandbox search:context query="authentication" format=json limit=3
+obsidian search:context query="authentication" format=json limit=3
 ```
 
 ## Tag Operations
 
 ### List All Tags
 ```bash
-obsidian --no-sandbox tags \
+obsidian tags \
   [options]
 ```
 
@@ -68,19 +68,19 @@ obsidian --no-sandbox tags \
 **Examples:**
 ```bash
 # List all tags with counts, sorted by frequency
-obsidian --no-sandbox tags counts=true sort=count format=json
+obsidian tags counts=true sort=count format=json
 
 # Get tag count only
-obsidian --no-sandbox tags total=true
+obsidian tags total=true
 
 # Tags from specific file
-obsidian --no-sandbox tags file="Project Alpha"
+obsidian tags file="Project Alpha"
 ```
 
 ### Specific Tag Information
 Get details about a particular tag.
 ```bash
-obsidian --no-sandbox tag \
+obsidian tag \
   name="<tag-name>" \
   [options]
 ```
@@ -93,14 +93,14 @@ obsidian --no-sandbox tag \
 **Example:**
 ```bash
 # Get all information about #project tag
-obsidian --no-sandbox tag name="project" verbose=true
+obsidian tag name="project" verbose=true
 ```
 
 ## Daily Notes
 
 ### Open Daily Note
 ```bash
-obsidian --no-sandbox daily \
+obsidian daily \
   [options]
 ```
 
@@ -109,14 +109,14 @@ obsidian --no-sandbox daily \
 
 ### Read Daily Note Content
 ```bash
-obsidian --no-sandbox daily:read
+obsidian daily:read
 ```
 Returns full content of today's daily note. Creates if it doesn't exist.
 
 ### Append to Daily Note
 Add entry to today's daily note.
 ```bash
-obsidian --no-sandbox daily:append \
+obsidian daily:append \
   content="<entry-text>" \
   [options]
 ```
@@ -130,7 +130,7 @@ obsidian --no-sandbox daily:append \
 ### Prepend to Daily Note
 Add entry at the beginning of today's daily note.
 ```bash
-obsidian --no-sandbox daily:prepend \
+obsidian daily:prepend \
   content="<entry-text>" \
   [options]
 ```
@@ -140,14 +140,14 @@ obsidian --no-sandbox daily:prepend \
 ### Get Daily Note Path
 Find where your daily notes are stored.
 ```bash
-obsidian --no-sandbox daily:path
+obsidian daily:path
 ```
 
 ## File Discovery
 
 ### List Recently Opened Files
 ```bash
-obsidian --no-sandbox recents \
+obsidian recents \
   [options]
 ```
 
@@ -158,12 +158,12 @@ obsidian --no-sandbox recents \
 Open or read a random note.
 ```bash
 # Open random note
-obsidian --no-sandbox random \
+obsidian random \
   folder="<folder>" \
   newtab=true
 
 # Read random note content
-obsidian --no-sandbox random:read \
+obsidian random:read \
   folder="<folder>"
 ```
 
@@ -174,7 +174,7 @@ obsidian --no-sandbox random:read \
 ### Search View
 Open the search interface with pre-filled query.
 ```bash
-obsidian --no-sandbox search:open \
+obsidian search:open \
   query="<initial-query>"
 ```
 
@@ -183,7 +183,7 @@ obsidian --no-sandbox search:open \
 ### Show File Headings
 Get outline/structure of a file.
 ```bash
-obsidian --no-sandbox outline \
+obsidian outline \
   file="<name>" \
   [options]
 ```
@@ -196,17 +196,17 @@ obsidian --no-sandbox outline \
 **Examples:**
 ```bash
 # Get outline as JSON for parsing
-obsidian --no-sandbox outline file="Document.md" format=json
+obsidian outline file="Document.md" format=json
 
 # Count headings in file
-obsidian --no-sandbox outline path="Guide/intro.md" total=true
+obsidian outline path="Guide/intro.md" total=true
 ```
 
 ## File & Folder Info
 
 ### List Files with Filters
 ```bash
-obsidian --no-sandbox files \
+obsidian files \
   [options]
 ```
 
@@ -218,7 +218,7 @@ obsidian --no-sandbox files \
 ### Folder Information
 Get stats about a specific folder.
 ```bash
-obsidian --no-sandbox folder \
+obsidian folder \
   path="<folder-path>" \
   info=files|folders|size
 ```
@@ -231,27 +231,27 @@ obsidian --no-sandbox folder \
 
 ### Find All Notes Mentioning X
 ```bash
-obsidian --no-sandbox search query="X" format=json limit=100
+obsidian search query="X" format=json limit=100
 ```
 
 ### Discover Tag Ecosystem
 ```bash
-obsidian --no-sandbox tags counts=true sort=count format=json total=false
+obsidian tags counts=true sort=count format=json total=false
 ```
 
 ### Daily Note Routine
 ```bash
 # Get today's daily note content first
-obsidian --no-sandbox daily:read
+obsidian daily:read
 
 # Add new entry
-obsidian --no-sandbox daily:append content="- Task for $(date)"
+obsidian daily:append content="- Task for $(date)"
 ```
 
 ### Explore Folder Structure
 ```bash
 # List all markdown files in Projects folder
-obsidian --no-sandbox files path="Projects/" ext=".md" format=json
+obsidian files path="Projects/" ext=".md" format=json
 ```
 
 ## Edge Cases & Best Practices

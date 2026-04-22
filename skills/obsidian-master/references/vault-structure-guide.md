@@ -194,16 +194,16 @@ For any note, you can discover:
 
 ```bash
 # Step 1: Find entry point
-obsidian --no-sandbox search query="machine learning" format=json limit=10
+obsidian search query="machine learning" format=json limit=10
 
 # Step 2: See what it links to
-obsidian --no-sandbox links file="Machine Learning"
+obsidian links file="Machine Learning"
 
 # Step 3: See what links to it
-obsidian --no-sandbox backlinks file="Machine Learning" counts=true format=json
+obsidian backlinks file="Machine Learning" counts=true format=json
 
 # Step 4: Read a connected note
-obsidian --no-sandbox read file="Neural Networks"
+obsidian read file="Neural Networks"
 ```
 
 ---
@@ -424,31 +424,31 @@ When you encounter a vault for the first time, follow this sequence:
 
 ```bash
 # 1. Get vault overview
-obsidian --no-sandbox vault
+obsidian vault
 
 # 2. See top-level folder structure
-obsidian --no-sandbox files ext=".md" format=json
+obsidian files ext=".md" format=json
 
 # 3. Look for entry points (home/index/dashboard notes)
-obsidian --no-sandbox search query="MOC" format=json limit=10
-obsidian --no-sandbox search query="Index" format=json limit=10
-obsidian --no-sandbox search query="Dashboard" format=json limit=10
+obsidian search query="MOC" format=json limit=10
+obsidian search query="Index" format=json limit=10
+obsidian search query="Dashboard" format=json limit=10
 
 # 4. Understand the tagging system
-obsidian --no-sandbox tags counts=true sort=count format=json
+obsidian tags counts=true sort=count format=json
 
 # 5. Understand what properties are in use
-obsidian --no-sandbox properties counts=true sort=count format=json
+obsidian properties counts=true sort=count format=json
 
 # 6. Check vault health
-obsidian --no-sandbox unresolved total=true
-obsidian --no-sandbox orphans total=true
-obsidian --no-sandbox deadends total=true
+obsidian unresolved total=true
+obsidian orphans total=true
+obsidian deadends total=true
 
 # 7. Read a hub note with many backlinks to understand central topics
 # (pick from step 3 results, or find via high backlink counts)
-obsidian --no-sandbox read file="<hub-note>"
-obsidian --no-sandbox backlinks file="<hub-note>" counts=true format=json
+obsidian read file="<hub-note>"
+obsidian backlinks file="<hub-note>" counts=true format=json
 ```
 
 After this sequence, you will understand:

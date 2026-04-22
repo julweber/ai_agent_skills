@@ -6,17 +6,17 @@ A comprehensive agent skill for controlling and interacting with your Obsidian k
 
 Read a note:
 ```bash
-obsidian --no-sandbox read file="My Note"
+obsidian read file="My Note"
 ```
 
 Create a new note:
 ```bash
-obsidian --no-sandbox create name="New Project" content="# New Project\n\nStarted today."
+obsidian create name="New Project" content="# New Project\n\nStarted today."
 ```
 
 Search vault:
 ```bash
-obsidian --no-sandbox search query="machine learning" limit=10
+obsidian search query="machine learning" limit=10
 ```
 
 ## Documentation Structure
@@ -76,7 +76,6 @@ obsidian --no-sandbox search query="machine learning" limit=10
 
 ## Important Notes
 
-- All CLI commands use the `--no-sandbox` flag as required by Obsidian
 - Most commands default to the active file when path is omitted
 - Use `format=json` for programmatic parsing of results
 - Quote values with spaces: `name="My Note"`
@@ -93,7 +92,6 @@ Common scenarios and responses:
 
 - Obsidian installed with CLI support (version 1.5+)
 - Node.js environment for running CLI commands
-- `--no-sandbox` flag required for all CLI invocations
 
 ## Contributing
 

@@ -11,7 +11,7 @@ Obsidian tracks tasks as checklist items (marked with `- [ ]`, `- [x]`, etc.) wi
 ### List All Tasks in Vault
 Get comprehensive task overview across your entire knowledge base.
 ```bash
-obsidian --no-sandbox tasks \
+obsidian tasks \
   [options]
 ```
 
@@ -29,25 +29,25 @@ obsidian --no-sandbox tasks \
 **Examples:**
 ```bash
 # List all incomplete tasks in vault
-obsidian --no-sandbox tasks format=json
+obsidian tasks format=json
 
 # Get count of completed tasks
-obsidian --no-sandbox tasks done=true total=true
+obsidian tasks done=true total=true
 
 # Tasks with custom status (e.g., "!" for important)
-obsidian --no-sandbox tasks status="!" verbose=true format=json
+obsidian tasks status="!" verbose=true format=json
 
 # Only from specific file
-obsidian --no-sandbox tasks path="Projects/Alpha/tasks.md" format=json
+obsidian tasks path="Projects/Alpha/tasks.md" format=json
 
 # From today's daily note only
-obsidian --no-sandbox tasks daily format=json
+obsidian tasks daily format=json
 ```
 
 ### Tasks by File
 Filter task list to a single note.
 ```bash
-obsidian --no-sandbox tasks \
+obsidian tasks \
   file="<name>" \
   [options]
 ```
@@ -55,7 +55,7 @@ obsidian --no-sandbox tasks \
 **Example:**
 ```bash
 # All tasks in specific project file
-obsidian --no-sandbox tasks file="Project Alpha" verbose=true format=json
+obsidian tasks file="Project Alpha" verbose=true format=json
 ```
 
 ## Task Operations
@@ -63,7 +63,7 @@ obsidian --no-sandbox tasks file="Project Alpha" verbose=true format=json
 ### Show or Update Specific Task
 Get details about a task and optionally modify it.
 ```bash
-obsidian --no-sandbox task \
+obsidian task \
   ref="<path:line>" \
   [options]
 ```
@@ -80,28 +80,28 @@ obsidian --no-sandbox task \
 **Alternative Reference Methods:**
 ```bash
 # Using file and line separately
-obsidian --no-sandbox task \
+obsidian task \
   file="Note.md" \
   line=15 \
   done
 
 # Using path reference (preferred)
-obsidian --no-sandbox task ref="Projects/Alpha/tasks.md:23" toggle
+obsidian task ref="Projects/Alpha/tasks.md:23" toggle
 ```
 
 **Examples:**
 ```bash
 # Toggle a specific task's completion status
-obsidian --no-sandbox task ref="Tasks/inbox.md:5" toggle
+obsidian task ref="Tasks/inbox.md:5" toggle
 
 # Mark task as done
-obsidian --no-sandbox task ref="Projects/Sprint/tasks.md:12" done
+obsidian task ref="Projects/Sprint/tasks.md:12" done
 
 # Set custom status (e.g., "!" for high priority)
-obsidian --no-sandbox task ref="Important/task.md:3" status="!"
+obsidian task ref="Important/task.md:3" status="!"
 
 # Mark as todo again
-obsidian --no-sandbox task ref="Completed/item.md:7" todo
+obsidian task ref="Completed/item.md:7" todo
 ```
 
 ## Common Task Workflows
@@ -110,27 +110,27 @@ obsidian --no-sandbox task ref="Completed/item.md:7" todo
 Start each day by reviewing pending tasks.
 ```bash
 # Get all incomplete tasks from daily note
-obsidian --no-sandbox tasks daily todo format=json
+obsidian tasks daily todo format=json
 
 # Or get all todo tasks across vault for morning review
-obsidian --no-sandbox tasks todo verbose=true format=json
+obsidian tasks todo verbose=true format=json
 ```
 
 ### Complete a Task
 Mark task as finished.
 ```bash
 # By line reference (most precise)
-obsidian --no-sandbox task ref="Tasks/daily.md:8" done
+obsidian task ref="Tasks/daily.md:8" done
 
 # Toggle if status unknown
-obsidian --no-sandbox task ref="Inbox/quick-tasks.md:15" toggle
+obsidian task ref="Inbox/quick-tasks.md:15" toggle
 ```
 
 ### Create New Task via Daily Note
 Add new task to today's daily note.
 ```bash
 # Append entry to daily note (creates task line)
-obsidian --no-sandbox daily:append \
+obsidian daily:append \
   content="- [ ] New task description\n"
 ```
 
@@ -138,10 +138,10 @@ obsidian --no-sandbox daily:append \
 Work with non-standard task statuses.
 ```bash
 # Find all tasks marked as important (!)
-obsidian --no-sandbox tasks status="!" format=json
+obsidian tasks status="!" format=json
 
 # Get count of blocked tasks (?)
-obsidian --no-sandbox tasks status="?" total=true
+obsidian tasks status="?" total=true
 ```
 
 ## Task Status System
@@ -161,10 +161,10 @@ Obsidian supports any single character for custom statuses:
 **Filtering by Status:**
 ```bash
 # Get all "important" tasks (!)
-obsidian --no-sandbox tasks status="!" format=json
+obsidian tasks status="!" format=json
 
 # Count blocked items (?)
-obsidian --no-sandbox tasks status="?" total=true
+obsidian tasks status="?" total=true
 ```
 
 ## Output Formats
@@ -179,14 +179,14 @@ Human-readable list with file paths and line numbers.
 ### JSON Format
 Structured data for programmatic processing.
 ```bash
-obsidian --no-sandbox tasks format=json
+obsidian tasks format=json
 # Returns: [{"file": "Projects/Alpha/report.md", "line": 15, "status": "x", "text": "Complete report"}, ...]
 ```
 
 ### TSV/CSV Format
 Tab or comma-separated values for spreadsheet import.
 ```bash
-obsidian --no-sandbox tasks format=tsv
+obsidian tasks format=tsv
 # Returns: file\tline\tstatus\ttext (header row included)
 ```
 
@@ -224,7 +224,7 @@ obsidian --no-sandbox tasks format=tsv
 
 ### Create Note with Tasks
 ```bash
-obsidian --no-sandbox create name="Sprint Plan" \
+obsidian create name="Sprint Plan" \
   content='# Sprint Planning\n\n## Tasks\n\n- [ ] Review requirements\n- [ ] Estimate story points\n- [ ] Assign tasks'
 ```
 
@@ -232,10 +232,10 @@ obsidian --no-sandbox create name="Sprint Plan" \
 After modifying a file, verify task state:
 ```bash
 # Read file to see current task status
-obsidian --no-sandbox read path="Tasks/inbox.md"
+obsidian read path="Tasks/inbox.md"
 
 # Mark remaining todos as done
-obsidian --no-sandbox tasks path="Tasks/inbox.md" todo format=json
+obsidian tasks path="Tasks/inbox.md" todo format=json
 ```
 
 ### Cross-Reference with Properties
@@ -243,7 +243,7 @@ Combine task and property queries:
 ```bash
 # Find tasks in notes with specific property
 # (requires combining multiple commands)
-properties=$(obsidian --no-sandbox properties name="priority" total=true)
-tasks=$(obsidian --no-sandbox tasks status="!" format=json)
+properties=$(obsidian properties name="priority" total=true)
+tasks=$(obsidian tasks status="!" format=json)
 # Process both to find high-priority tasks
 ```

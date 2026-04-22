@@ -17,10 +17,10 @@ Traditional GTD tools tell you what's unfinished. The GTD Assistant tells you:
 
 ## Vault Configuration
 
-| Setting | Value |
-|---------|-------|
-| **Vault path** | `$HOME/main_vault` |
-| **Obsidian CLI** | Always use `obsidian --no-sandbox` |
+| Setting          | Value                 |
+| ------------------| -----------------------|
+| **Vault path**   | `$HOME/main_vault`    |
+| **Obsidian CLI** | Always use `obsidian` |
 
 The vault layout follows the standard structure:
 - `00-Tasks/` — all task files organized by domain
@@ -64,10 +64,10 @@ Follow the three-pass workflow:
 **Pass 1 — Open Tasks**
 ```bash
 # Get total count
-obsidian --no-sandbox tasks todo total=true
+obsidian tasks todo total=true
 
 # Get all open tasks grouped by file (JSON format for parsing)
-obsidian --no-sandbox tasks todo verbose=true format=json
+obsidian tasks todo verbose=true format=json
 ```
 Parse JSON output. Group tasks by domain:
 - **Inbox / Urgent**: files in `00-Tasks/`
@@ -80,10 +80,10 @@ Show top items per group (max 5–7 per group). Skip recurring tasks (`🔁`) in
 
 **Pass 2 — Dangling Thoughts **(keyword search)
 ```bash
-obsidian --no-sandbox search query="TODO" format=json limit=30
-obsidian --no-sandbox search query="idea" format=json limit=30
-obsidian --no-sandbox search query="later" format=json limit=20
-obsidian --no-sandbox search query="?" format=json limit=20
+obsidian search query="TODO" format=json limit=30
+obsidian search query="idea" format=json limit=30
+obsidian search query="later" format=json limit=20
+obsidian search query="?" format=json limit=20
 ```
 **Filter out**:
 - Files already in `00-Tasks/` (covered in Pass 1)
@@ -198,7 +198,7 @@ Format:
 
 ### Task Creation from Ideas
 ```bash
-obsidian --no-sandbox create name="Task: [Description]" content="[task details]"
+obsidian create name="Task: [Description]" content="[task details]"
 ```
 
 ### Report Saving (Optional)
@@ -206,7 +206,7 @@ obsidian --no-sandbox create name="Task: [Description]" content="[task details]"
 Ask the user whether he wants to save the report.
 
 ```bash
-obsidian --no-sandbox create name="GTD Report — $(date +%Y-%m-%d)" content="[full report markdown]"
+obsidian create name="GTD Report — $(date +%Y-%m-%d)" content="[full report markdown]"
 ```
 
 ## Example Usage

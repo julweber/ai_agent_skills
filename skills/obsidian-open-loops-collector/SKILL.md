@@ -17,7 +17,7 @@ Performs a full GTD-style sweep of the vault and presents a consolidated view of
   - `TODOs - AKTUELL.md` — current high-priority TODOs
   - `Work/HUK/` — work project tasks (HUK)
 - **Vault path**: `$HOME/main_vault`
-- **Obsidian CLI**: always use `obsidian --no-sandbox`
+- **Obsidian CLI**: always use `obsidian`
 
 ## Workflow: Three-Pass Collection
 
@@ -27,10 +27,10 @@ Run all three passes, then synthesize into one structured report.
 
 ```bash
 # Get total count
-obsidian --no-sandbox tasks todo total=true
+obsidian tasks todo total=true
 
 # Get all open tasks grouped by file
-obsidian --no-sandbox tasks todo verbose=true format=json
+obsidian tasks todo verbose=true format=json
 ```
 
 Parse JSON output. Group tasks by domain:
@@ -47,10 +47,10 @@ Show top items per group (max 5-7 per group). Skip recurring tasks (`🔁`) in t
 Run these four searches and deduplicate results (a note may appear in multiple):
 
 ```bash
-obsidian --no-sandbox search query="TODO" format=json limit=30
-obsidian --no-sandbox search query="idea" format=json limit=30
-obsidian --no-sandbox search query="later" format=json limit=20
-obsidian --no-sandbox search query="?" format=json limit=20
+obsidian search query="TODO" format=json limit=30
+obsidian search query="idea" format=json limit=30
+obsidian search query="later" format=json limit=20
+obsidian search query="?" format=json limit=20
 ```
 
 **Filter out**:
@@ -60,7 +60,7 @@ obsidian --no-sandbox search query="?" format=json limit=20
 
 Present as a deduplicated list of notes with dangling content. For each, read a snippet to show *what* is dangling:
 ```bash
-obsidian --no-sandbox search:context query="TODO" limit=5 format=json
+obsidian search:context query="TODO" limit=5 format=json
 ```
 
 ### Pass 3 — Stub Notes (incomplete / abandoned)
@@ -75,7 +75,7 @@ This returns lines like: `3\tSome Note.md`
 
 Group stubs by folder/domain. Highlight any stubs that look like project or idea notes (not just reference stubs). Read the content of interesting-looking ones:
 ```bash
-obsidian --no-sandbox read file="Note Name"
+obsidian read file="Note Name"
 ```
 
 ## Output Format
@@ -136,7 +136,7 @@ After presenting the report, offer:
 
 To save the report:
 ```bash
-obsidian --no-sandbox create name="Open Loops Report [DATE]" content="[report content]"
+obsidian create name="Open Loops Report [DATE]" content="[report content]"
 ```
 
 ## Performance Notes

@@ -19,7 +19,7 @@ Obsidian uses YAML frontmatter at the top of markdown files to store structured 
 ### List All Properties in Vault
 Discover what properties exist across your entire knowledge base.
 ```bash
-obsidian --no-sandbox properties \
+obsidian properties \
   [options]
 ```
 
@@ -35,19 +35,19 @@ obsidian --no-sandbox properties \
 **Examples:**
 ```bash
 # List all properties in vault with counts, sorted alphabetically
-obsidian --no-sandbox properties counts=true format=json
+obsidian properties counts=true format=json
 
 # Get count of "status" property usage across vault
-obsidian --no-sandbox properties name="status" total=true
+obsidian properties name="status" total=true
 
 # Properties for specific note
-obsidian --no-sandbox properties file="Project Alpha" format=json
+obsidian properties file="Project Alpha" format=json
 ```
 
 ### List Properties for Specific File
 Get all properties defined in a particular note.
 ```bash
-obsidian --no-sandbox properties \
+obsidian properties \
   file="<name>" \
   path="<folder>/<file>.md"
 ```
@@ -55,7 +55,7 @@ obsidian --no-sandbox properties \
 **Example:**
 ```bash
 # View all properties on this specific note
-obsidian --no-sandbox properties path="Projects/Alpha/spec.md" format=json
+obsidian properties path="Projects/Alpha/spec.md" format=json
 ```
 
 ## Reading Property Values
@@ -63,7 +63,7 @@ obsidian --no-sandbox properties path="Projects/Alpha/spec.md" format=json
 ### Read Single Property
 Extract value of a specific property from a file.
 ```bash
-obsidian --no-sandbox property:read \
+obsidian property:read \
   name="<property-name>" \
   file="<file>" \
   [options]
@@ -76,10 +76,10 @@ obsidian --no-sandbox property:read \
 **Example:**
 ```bash
 # Get status value from a note
-obsidian --no-sandbox property:read name="status" file="Project Alpha"
+obsidian property:read name="status" file="Project Alpha"
 
 # Read due date from specific path
-obsidian --no-sandbox property:read name="due-date" path="Tasks/important.md"
+obsidian property:read name="due-date" path="Tasks/important.md"
 ```
 
 **Output Format:** Returns just the property value (or empty if not found).
@@ -89,7 +89,7 @@ obsidian --no-sandbox property:read name="due-date" path="Tasks/important.md"
 ### Set or Update Property
 Create or modify a property on a file.
 ```bash
-obsidian --no-sandbox property:set \
+obsidian property:set \
   name="<property-name>" \
   value="<value>" \
   type=<type> \
@@ -114,22 +114,22 @@ obsidian --no-sandbox property:set \
 **Examples:**
 ```bash
 # Set text property
-obsidian --no-sandbox property:set name="status" value="completed" type=text file="Note.md"
+obsidian property:set name="status" value="completed" type=text file="Note.md"
 
 # Set list of tags
-obsidian --no-sandbox property:set name="tags" value='["project", "urgent"]' type=list file="Task.md"
+obsidian property:set name="tags" value='["project", "urgent"]' type=list file="Task.md"
 
 # Set numeric priority
-obsidian --no-sandbox property:set name="priority" value=5 type=number file="Item.md"
+obsidian property:set name="priority" value=5 type=number file="Item.md"
 
 # Set checkbox status
-obsidian --no-sandbox property:set name="reviewed" value=true type=checkbox file="Document.md"
+obsidian property:set name="reviewed" value=true type=checkbox file="Document.md"
 
 # Set date field
-obsidian --no-sandbox property:set name="due-date" value="2026-03-15" type=date file="Task.md"
+obsidian property:set name="due-date" value="2026-03-15" type=date file="Task.md"
 
 # Set datetime for deadline
-obsidian --no-sandbox property:set name="deadline" value="2026-03-15T14:30:00" type=datetime file="Meeting.md"
+obsidian property:set name="deadline" value="2026-03-15T14:30:00" type=datetime file="Meeting.md"
 ```
 
 ## Removing Properties
@@ -137,7 +137,7 @@ obsidian --no-sandbox property:set name="deadline" value="2026-03-15T14:30:00" t
 ### Delete Property from File
 Remove a specific property definition.
 ```bash
-obsidian --no-sandbox property:remove \
+obsidian property:remove \
   name="<property-name>" \
   file="<file>" \
   [options]
@@ -150,7 +150,7 @@ obsidian --no-sandbox property:remove \
 **Example:**
 ```bash
 # Remove temporary property
-obsidian --no-sandbox property:remove name="draft-flag" file="Document.md"
+obsidian property:remove name="draft-flag" file="Document.md"
 ```
 
 ## Common Patterns & Workflows
@@ -159,29 +159,29 @@ obsidian --no-sandbox property:remove name="draft-flag" file="Document.md"
 Find notes with specific property values by combining operations:
 ```bash
 # 1. List all properties to discover available types
-obsidian --no-sandbox properties format=json
+obsidian properties format=json
 
 # 2. Check value on specific note
-obsidian --no-sandbox property:read name="status" file="Project Alpha"
+obsidian property:read name="status" file="Project Alpha"
 
 # 3. Update based on current state
-obsidian --no-sandbox property:set name="status" value="in-progress" type=text file="Project Alpha"
+obsidian property:set name="status" value="in-progress" type=text file="Project Alpha"
 ```
 
 ### Bulk Property Updates (Multiple Files)
 Apply same property across multiple notes:
 ```bash
 # For each target file, set the property
-obsidian --no-sandbox property:set name="project" value="Alpha" type=text file="Doc1.md"
-obsidian --no-sandbox property:set name="project" value="Alpha" type=text file="Doc2.md"
-obsidian --no-sandbox property-set name="project" value="Alpha" type=text file="Doc3.md"
+obsidian property:set name="project" value="Alpha" type=text file="Doc1.md"
+obsidian property:set name="project" value="Alpha" type=text file="Doc2.md"
+obsidian property-set name="project" value="Alpha" type=text file="Doc3.md"
 ```
 
 ### Template Property Setup
 Create notes with predefined properties:
 ```bash
 # Create note with content including YAML frontmatter
-obsidian --no-sandbox create name="New Task" \
+obsidian create name="New Task" \
   content='---\nstatus: todo\npriority: medium\ndue-date: 2026-03-20\n---\n\n# New Task\n\nDescription here.'
 ```
 
@@ -189,10 +189,10 @@ obsidian --no-sandbox create name="New Task" \
 Ensure required properties exist before proceeding:
 ```bash
 # Check if property exists and has expected value
-value=$(obsidian --no-sandbox property:read name="status" file="Note.md")
+value=$(obsidian property:read name="status" file="Note.md")
 if [ "$value" != "reviewed" ]; then
   echo "Property not set correctly, updating..."
-  obsidian --no-sandbox property:set name="status" value="reviewed" type=text file="Note.md"
+  obsidian property:set name="status" value="reviewed" type=text file="Note.md"
 fi
 ```
 

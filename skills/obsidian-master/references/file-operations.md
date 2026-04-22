@@ -6,8 +6,8 @@ Complete documentation for file management operations in Obsidian.
 
 ### Read File Contents
 ```bash
-obsidian --no-sandbox read file="<name>"
-obsidian --no-sandbox read path="<folder>/<file>.md"
+obsidian read file="<name>"
+obsidian read path="<folder>/<file>.md"
 ```
 - Returns full markdown content of the specified file
 - Works with note name (wikilink) or exact path
@@ -15,8 +15,8 @@ obsidian --no-sandbox read path="<folder>/<file>.md"
 
 ### File Information
 ```bash
-obsidian --no-sandbox file file="<name>"
-obsidian --no-sandbox file path="<folder>/<file>.md"
+obsidian file file="<name>"
+obsidian file path="<folder>/<file>.md"
 ```
 Returns metadata about the file including:
 - Path and name
@@ -27,7 +27,7 @@ Returns metadata about the file including:
 
 ### Create New Note
 ```bash
-obsidian --no-sandbox create \
+obsidian create \
   name="<note-name>" \
   content="# Title\n\nContent here."
 ```
@@ -44,13 +44,13 @@ obsidian --no-sandbox create \
 **Examples:**
 ```bash
 # Create with inline content
-obsidian --no-sandbox create name="Project Alpha" content="# Project Alpha\n\nStarting point."
+obsidian create name="Project Alpha" content="# Project Alpha\n\nStarting point."
 
 # Create using template
-obsidian --no-sandbox create name="Meeting Notes" template="meeting-template" open=true
+obsidian create name="Meeting Notes" template="meeting-template" open=true
 
 # Create in specific folder
-obsidian --no-sandbox create path="Projects/Alpha/spec.md" content="# Specification"
+obsidian create path="Projects/Alpha/spec.md" content="# Specification"
 ```
 
 ## Editing Files
@@ -58,7 +58,7 @@ obsidian --no-sandbox create path="Projects/Alpha/spec.md" content="# Specificat
 ### Append to File
 Add content to the end of a file.
 ```bash
-obsidian --no-sandbox append \
+obsidian append \
   file="<name>" \
   content="Additional content here."
 ```
@@ -71,16 +71,16 @@ obsidian --no-sandbox append \
 **Examples:**
 ```bash
 # Add entry to daily note
-obsidian --no-sandbox append path="2026-03-01.md" content="- Completed task review\n"
+obsidian append path="2026-03-01.md" content="- Completed task review\n"
 
 # Add bullet point without newline
-obsidian --no-sandbox append file="Meeting Notes" content="* Discussion item" inline=true
+obsidian append file="Meeting Notes" content="* Discussion item" inline=true
 ```
 
 ### Prepend to File
 Add content to the beginning of a file.
 ```bash
-obsidian --no-sandbox prepend \
+obsidian prepend \
   file="<name>" \
   content="# Header\n\nInitial section."
 ```
@@ -94,7 +94,7 @@ obsidian --no-sandbox prepend \
 ### Rename File
 Change the filename while keeping it in the same location.
 ```bash
-obsidian --no-sandbox rename \
+obsidian rename \
   file="<current-name>" \
   name="<new-name>"
 ```
@@ -106,16 +106,16 @@ obsidian --no-sandbox rename \
 **Examples:**
 ```bash
 # Rename by note name
-obsidian --no-sandbox rename file="Old Note Name" name="New Note Name"
+obsidian rename file="Old Note Name" name="New Note Name"
 
 # Rename using path
-obsidian --no-sandbox rename path="Projects/Old/spec.md" name="updated-spec"
+obsidian rename path="Projects/Old/spec.md" name="updated-spec"
 ```
 
 ### Move File
 Move file to different folder or change location.
 ```bash
-obsidian --no-sandbox move \
+obsidian move \
   file="<name>" \
   to="<destination-folder-or-path>"
 ```
@@ -127,10 +127,10 @@ obsidian --no-sandbox move \
 **Examples:**
 ```bash
 # Move to different folder
-obsidian --no-sandbox move file="Document.md" to="Archive/2026/"
+obsidian move file="Document.md" to="Archive/2026/"
 
 # Rename and move simultaneously
-obsidian --no-sandbox move path="Notes/temp.md" to="Projects/Alpha/final-spec.md"
+obsidian move path="Notes/temp.md" to="Projects/Alpha/final-spec.md"
 ```
 
 ## Deleting Files
@@ -138,8 +138,8 @@ obsidian --no-sandbox move path="Notes/temp.md" to="Projects/Alpha/final-spec.md
 ### Delete File (Trash)
 Move file to system trash.
 ```bash
-obsidian --no-sandbox delete file="<name>"
-obsidian --no-sandbox delete path="<folder>/<file>.md"
+obsidian delete file="<name>"
+obsidian delete path="<folder>/<file>.md"
 ```
 
 **Parameters:**
@@ -149,10 +149,10 @@ obsidian --no-sandbox delete path="<folder>/<file>.md"
 **Examples:**
 ```bash
 # Move to trash
-obsidian --no-sandbox delete file="Old Draft.md"
+obsidian delete file="Old Draft.md"
 
 # Permanent deletion (irreversible)
-obsidian --no-sandbox delete path="Temp/scratch.md" permanent=true
+obsidian delete path="Temp/scratch.md" permanent=true
 ```
 
 ## Common Patterns & Best Practices
