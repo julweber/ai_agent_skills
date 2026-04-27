@@ -1,0 +1,206 @@
+#!/bin/bash
+
+# tmux-ensure-progress
+# Background watcher that monitors agents and sends recovery prompts when stuck
+# Exits when all agents report TASK_COMPLETE
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tmux-coder-lib.sh
+source "${SCRIPT_DIR}/tmux-coder-lib.sh"
+
+SESSION=""
+STUCK_PROMPT="Please continue working autonomously"
+FINISH_STRING="TASK_COMPLETE"
+INTERVAL=10
+STABLE_ROUNDS=3
+VERBOSE=false
+MAX_ITERATIONS=0
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Monitor agents and ensure they keep working.
+Sends recovery prompts to stuck agents and exits when all finish.
+
+Required:
+  -s, --session SESSION       tmux session name
+
+Optional:
+  -p, --stuck-prompt PROMPT   prompt to send when agent is stuck
+  -f, --finish-string STRING  completion marker (default: TASK_COMPLETE)
+  -i, --interval SECONDS      seconds between checks (default: 10)
+  -r, --stable-rounds N       rounds before declaring stuck (default: 3)
+  -n, --iterations N          max iterations (0 = unlimited, default: 0)
+      --verbose               log all pane states on every iteration
+  -h, --help                  show this help
+EOF
+    exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -s|--session)       SESSION="$2";       shift 2 ;;
+        -p|--stuck-prompt)  STUCK_PROMPT="$2";  shift 2 ;;
+        -f|--finish-string) FINISH_STRING="$2"; shift 2 ;;
+        -i|--interval)      INTERVAL="$2";      shift 2 ;;
+        -r|--stable-rounds) STABLE_ROUNDS="$2"; shift 2 ;;
+        -n|--iterations)    MAX_ITERATIONS="$2"; shift 2 ;;
+        --verbose)          VERBOSE=true;       shift ;;
+        -h|--help)          usage ;;
+        *) echo "Unknown option: $1"; usage ;;
+    esac
+done
+
+[[ -z "$SESSION" ]] && { echo "Error: --session required" >&2; usage; }
+
+SOCKET=$(get_socket_path "$SESSION")
+
+# Verify session exists
+if ! tmux -S "$SOCKET" has-session -t "$SESSION" 2>/dev/null; then
+    echo "Error: session '$SESSION' not found" >&2
+    exit 1
+fi
+
+declare -A pane_state
+declare -A pane_baseline
+declare -A pane_prev
+declare -A pane_stable
+
+log() {
+    echo "[$(date '+%H:%M:%S')] $*"
+}
+
+get_panes() {
+    tmux -S "$SOCKET" list-panes -s -t "$SESSION" -F "#{session_name}:#{window_index}.#{pane_index}" 2>/dev/null
+}
+
+capture_pane() {
+    tmux -S "$SOCKET" capture-pane -t "$1" -p 2>/dev/null
+}
+
+has_finish_string() {
+    echo "$1" | tail -20 | grep -qF "$FINISH_STRING"
+}
+
+check_pane() {
+    local pane="$1"
+    local state="${pane_state[$pane]:-UNKNOWN}"
+
+    # DONE is terminal
+    if [[ "$state" == "DONE" ]]; then
+        $VERBOSE && log "DONE    [$pane]"
+        return
+    fi
+
+    local current
+    current=$(capture_pane "$pane")
+
+    # On first visit, record the baseline
+    if [[ "$state" == "UNKNOWN" ]]; then
+        pane_baseline[$pane]="$current"
+        pane_prev[$pane]="$current"
+        pane_state[$pane]="RUNNING"
+        log "RUNNING [$pane] detected"
+        return
+    fi
+
+    # Check finish string once content diverges from baseline
+    if [[ "$current" != "${pane_baseline[$pane]}" ]] && has_finish_string "$current"; then
+        pane_state[$pane]="DONE"
+        log "DONE    [$pane] finish string detected"
+        return
+    fi
+
+    local prev="${pane_prev[$pane]:-}"
+    local stable="${pane_stable[$pane]:-0}"
+
+    if [[ "$current" != "$prev" ]]; then
+        case "$state" in
+            STUCK) log "RUNNING [$pane] resumed after being stuck" ;;
+            *)     $VERBOSE && log "RUNNING [$pane]" ;;
+        esac
+        pane_state[$pane]="RUNNING"
+        pane_stable[$pane]=0
+        pane_prev[$pane]="$current"
+    else
+        stable=$((stable + 1))
+        pane_stable[$pane]=$stable
+
+        if [[ "$stable" -ge "$STABLE_ROUNDS" ]]; then
+            if [[ "$state" != "STUCK" ]]; then
+                pane_state[$pane]="STUCK"
+                log "STUCK   [$pane] no output change for $STABLE_ROUNDS rounds, sending prompt"
+            else
+                log "STUCK   [$pane] still unresponsive, sending prompt again"
+            fi
+            tmux -S "$SOCKET" send-keys -t "$pane" "$STUCK_PROMPT" Enter
+            pane_stable[$pane]=0
+        else
+            $VERBOSE && log "${state}  [$pane] stable $stable/$((STABLE_ROUNDS - 1))"
+        fi
+    fi
+}
+
+all_done() {
+    local pane
+    for pane in "$@"; do
+        [[ "${pane_state[$pane]:-}" != "DONE" ]] && return 1
+    done
+    return 0
+}
+
+final_verify() {
+    local all_confirmed=true
+    local pane current
+
+    log "Final verification: re-checking all panes for finish string"
+    for pane in "$@"; do
+        current=$(capture_pane "$pane")
+        if has_finish_string "$current"; then
+            log "DONE    [$pane] finish string confirmed"
+        else
+            log "RUNNING [$pane] finish string missing on final check, re-prompting"
+            pane_state[$pane]="RUNNING"
+            pane_stable[$pane]=0
+            pane_prev[$pane]="$current"
+            pane_baseline[$pane]="$current"
+            tmux -S "$SOCKET" send-keys -t "$pane" "$STUCK_PROMPT" Enter
+            all_confirmed=false
+        fi
+    done
+
+    $all_confirmed
+}
+
+# Main loop
+iteration=0
+log "Starting watcher: session='$SESSION' interval=${INTERVAL}s stable_rounds=${STABLE_ROUNDS}"
+[[ "$MAX_ITERATIONS" -gt 0 ]] && log "Will exit after $MAX_ITERATIONS iterations"
+
+while true; do
+    mapfile -t panes < <(get_panes)
+
+    if [[ ${#panes[@]} -eq 0 ]]; then
+        log "WARNING: no panes found in session '$SESSION'"
+    else
+        for pane in "${panes[@]}"; do
+            check_pane "$pane"
+        done
+
+        if all_done "${panes[@]}" && final_verify "${panes[@]}"; then
+            log "All agents finished. Exiting."
+            exit 0
+        fi
+    fi
+
+    iteration=$((iteration + 1))
+    if [[ "$MAX_ITERATIONS" -gt 0 && "$iteration" -ge "$MAX_ITERATIONS" ]]; then
+        log "Reached $MAX_ITERATIONS iterations, exiting"
+        exit 0
+    fi
+
+    sleep "$INTERVAL"
+done

@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# tmux-spawn-agent
+# Spawn a new coding agent in a tmux window within a session
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tmux-coder-lib.sh
+source "${SCRIPT_DIR}/tmux-coder-lib.sh"
+
+SESSION=""
+AGENT=""
+TASK=""
+FINISH_STRING="TASK_COMPLETE"
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Spawn a new coding agent in a tmux window.
+
+Required:
+  -s, --session SESSION       tmux session name (creates if not exists)
+  -a, --agent AGENT           agent to start (pi, claude, codex, opencode)
+  -t, --task TASK             task description to send to the agent
+
+Optional:
+  -f, --finish-string STRING  completion marker (default: TASK_COMPLETE)
+  -h, --help                  show this help
+EOF
+    exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -s|--session)       SESSION="$2";       shift 2 ;;
+        -a|--agent)         AGENT="$2";         shift 2 ;;
+        -t|--task)          TASK="$2";          shift 2 ;;
+        -f|--finish-string) FINISH_STRING="$2"; shift 2 ;;
+        -h|--help) usage ;;
+        *) echo "Unknown option: $1"; usage ;;
+    esac
+done
+
+# Validate required arguments
+[[ -z "$SESSION" ]] && { echo "Error: --session required" >&2; usage; }
+[[ -z "$AGENT" ]] && { echo "Error: --agent required" >&2; usage; }
+[[ -z "$TASK" ]] && { echo "Error: --task required" >&2; usage; }
+
+# Validate agent
+validate_agent "$AGENT" || exit 1
+
+# Setup
+ensure_dirs
+SOCKET=$(get_socket_path "$SESSION")
+
+# Create session if it doesn't exist
+if ! tmux -S "$SOCKET" has-session -t "$SESSION" 2>/dev/null; then
+    echo "Creating new session '$SESSION'..."
+    tmux -S "$SOCKET" new-session -d -s "$SESSION" -n shell
+fi
+
+# Generate window label
+WINDOW_LABEL=$(generate_window_label "$SESSION" "$SOCKET")
+
+echo "Spawning agent in window '$WINDOW_LABEL'..."
+
+# Create new window
+tmux -S "$SOCKET" new-window -t "$SESSION" -n "$WINDOW_LABEL"
+
+# Start the agent
+AGENT_CMD=$(agent_cmd "$AGENT")
+tmux -S "$SOCKET" send-keys -t "$SESSION:$WINDOW_LABEL" "$AGENT_CMD" Enter
+
+# Wait for agent to start (check for prompt)
+sleep 2
+
+# Build the task message with finish-string instruction
+FULL_TASK="$TASK
+
+IMPORTANT: When you have completed this task, respond with exactly: $FINISH_STRING"
+
+# Send the task to the agent
+tmux -S "$SOCKET" send-keys -t "$SESSION:$WINDOW_LABEL" -l -- "$FULL_TASK"
+tmux -S "$SOCKET" send-keys -t "$SESSION:$WINDOW_LABEL" Enter
+
+# Register session for tracking
+add_session "$SESSION" "$SOCKET"
+
+echo ""
+echo "============================================================"
+echo " Agent spawned successfully"
+echo " Session:  $SESSION"
+echo " Window:   $WINDOW_LABEL"
+echo " Agent:    $AGENT"
+echo ""
+echo " Connect with:"
+echo "   tmux -S $SOCKET attach -t $SESSION"
+echo ""
+echo " Check status with:"
+echo "   tmux-agent-status --session $SESSION"
+echo "============================================================"

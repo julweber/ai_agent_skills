@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# tmux-kill-session
+# Kill a tmux session and all its windows
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tmux-coder-lib.sh
+source "${SCRIPT_DIR}/tmux-coder-lib.sh"
+
+SESSION=""
+FORCE=false
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Kill a tmux session and all its windows.
+
+Required:
+  -s, --session SESSION       tmux session name
+
+Optional:
+  -f, --force                 kill without confirmation
+  -h, --help                  show this help
+EOF
+    exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -s|--session) SESSION="$2"; shift 2 ;;
+        -f|--force)   FORCE=true;  shift ;;
+        -h|--help)    usage ;;
+        *) echo "Unknown option: $1"; usage ;;
+    esac
+done
+
+[[ -z "$SESSION" ]] && { echo "Error: --session required" >&2; usage; }
+
+SOCKET=$(get_socket_path "$SESSION")
+
+# Verify session exists
+if ! tmux -S "$SOCKET" has-session -t "$SESSION" 2>/dev/null; then
+    echo "Error: session '$SESSION' not found" >&2
+    exit 1
+fi
+
+# Confirm unless force flag is set
+if ! $FORCE; then
+    echo "This will kill session '$SESSION' and all its windows."
+    echo -n "Continue? [y/N] "
+    read -r response
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+        echo "Aborted."
+        exit 0
+    fi
+fi
+
+# Kill the session
+echo "Killing session '$SESSION'..."
+tmux -S "$SOCKET" kill-session -t "$SESSION" 2>/dev/null || true
+
+# Force kill any remaining windows if session still exists
+if tmux -S "$SOCKET" has-session -t "$SESSION" 2>/dev/null; then
+    echo "Forcing cleanup of remaining windows..."
+    tmux -S "$SOCKET" kill-session -a -t "$SESSION" 2>/dev/null || true
+fi
+
+# Remove socket file
+if [[ -S "$SOCKET" ]]; then
+    rm -f "$SOCKET"
+fi
+
+# Remove from tracking
+remove_session "$SESSION"
+
+echo "Session '$SESSION' killed and socket cleaned up."

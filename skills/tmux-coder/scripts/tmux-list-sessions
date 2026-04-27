@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# tmux-list-sessions
+# List all active tmux sessions managed by tmux-coder
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tmux-coder-lib.sh
+source "${SCRIPT_DIR}/tmux-coder-lib.sh"
+
+LIST_ALL=false
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+List tmux sessions managed by tmux-coder.
+
+Optional:
+  -a, --all    list all tmux sessions (not just tracked ones)
+  -h, --help   show this help
+EOF
+    exit 1
+}
+
+list_all_sessions() {
+    # List all sessions on all sockets in the socket directory
+    echo "============================================================"
+    echo " Active Tmux Sessions"
+    echo "============================================================"
+    echo ""
+
+    found=false
+
+    # Check default socket
+    if tmux list-sessions 2>/dev/null | head -1 &>/dev/null; then
+        echo "[Default Socket]"
+        tmux list-sessions -F "  #{session_name} (#{session_windows} windows, #{session_created} created)"
+        found=true
+        echo ""
+    fi
+
+    # Check custom sockets
+    if [[ -d "$TMUX_CODER_SOCKET_DIR" ]]; then
+        for socket in "$TMUX_CODER_SOCKET_DIR"/*.sock; do
+            [[ -e "$socket" ]] || continue
+            echo "[$(basename "$socket")]"
+            tmux -S "$socket" list-sessions -F "  #{session_name} (#{session_windows} windows)" 2>/dev/null
+            echo ""
+        done
+    fi
+
+    if ! $found && [[ -z "$(ls -A "$TMUX_CODER_SOCKET_DIR" 2>/dev/null)" ]]; then
+        echo "  No active sessions found."
+    fi
+}
+
+list_tracked_sessions() {
+    # List only tracked sessions
+    echo "============================================================"
+    echo " Tracked Tmux-Coder Sessions"
+    echo "============================================================"
+    echo ""
+
+    local sessions_file="$TMUX_CODER_STATE_DIR/sessions.json"
+    found=false
+
+    if [[ -f "$sessions_file" ]]; then
+        # Parse and display tracked sessions
+        while IFS= read -r line; do
+            # Extract session name and socket
+            session=$(echo "$line" | sed -n 's/.*"\([^"]*\)":{.*/\1/p')
+            socket=$(echo "$line" | sed -n 's/.*"socket":"\([^"]*\)".*/\1/p')
+            created=$(echo "$line" | sed -n 's/.*"created":"\([^"]*\)".*/\1/p')
+
+            [[ -z "$session" ]] && continue
+            found=true
+
+            # Check if session is actually alive
+            status="DEAD"
+            if [[ -S "$socket" ]] && tmux -S "$socket" has-session -t "$session" 2>/dev/null; then
+                status="ACTIVE"
+            fi
+
+            printf "  %-30s %-8s %s\n" "$session" "$status" "${created:-$socket}"
+        done < "$sessions_file"
+    fi
+
+    if ! $found; then
+        echo "  No tracked sessions."
+        echo ""
+        echo "  Use --all to see all tmux sessions on this system."
+    fi
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -a|--all)   LIST_ALL=true; shift ;;
+        -h|--help)  usage ;;
+        *) echo "Unknown option: $1"; usage ;;
+    esac
+done
+
+ensure_dirs
+
+if $LIST_ALL; then
+    list_all_sessions
+else
+    list_tracked_sessions
+fi
+
+echo ""
+echo "============================================================"

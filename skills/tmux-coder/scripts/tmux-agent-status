@@ -1,0 +1,143 @@
+#!/bin/bash
+
+# tmux-agent-status
+# Show status of all agents in a tmux session
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tmux-coder-lib.sh
+source "${SCRIPT_DIR}/tmux-coder-lib.sh"
+
+SESSION=""
+FINISH_STRING="TASK_COMPLETE"
+VERBOSE=false
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Show status of all agents in a tmux session.
+
+Required:
+  -s, --session SESSION       tmux session name
+
+Optional:
+  -f, --finish-string STRING  completion marker (default: TASK_COMPLETE)
+  -v, --verbose               show full last line (not truncated)
+  -h, --help                  show this help
+EOF
+    exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -s|--session)       SESSION="$2";       shift 2 ;;
+        -f|--finish-string) FINISH_STRING="$2"; shift 2 ;;
+        -v|--verbose)       VERBOSE=true;       shift ;;
+        -h|--help)          usage ;;
+        *) echo "Unknown option: $1"; usage ;;
+    esac
+done
+
+[[ -z "$SESSION" ]] && { echo "Error: --session required" >&2; usage; }
+
+SOCKET=$(get_socket_path "$SESSION")
+
+# Verify session exists
+if ! tmux -S "$SOCKET" has-session -t "$SESSION" 2>/dev/null; then
+    echo "Error: session '$SESSION' not found" >&2
+    exit 1
+fi
+
+# Get all panes
+declare -A pane_states
+declare -A pane_prev
+declare -A pane_stable
+
+get_panes() {
+    tmux -S "$SOCKET" list-panes -s -t "$SESSION" -F "#{session_name}:#{window_index}.#{pane_index}" 2>/dev/null
+}
+
+capture_pane() {
+    tmux -S "$SOCKET" capture-pane -t "$1" -p 2>/dev/null
+}
+
+has_finish_string() {
+    echo "$1" | tail -20 | grep -qF "$FINISH_STRING"
+}
+
+check_pane_state() {
+    local pane="$1"
+    local current
+    current=$(capture_pane "$pane")
+    
+    local prev="${pane_prev[$pane]:-}"
+    local stable="${pane_stable[$pane]:-0}"
+    local state="${pane_states[$pane]:-unknown}"
+    
+    # First visit
+    if [[ "$state" == "unknown" ]]; then
+        pane_states[$pane]="running"
+        pane_prev[$pane]="$current"
+        pane_stable[$pane]=0
+        return
+    fi
+    
+    # Check for finish string
+    if has_finish_string "$current"; then
+        pane_states[$pane]="done"
+        return
+    fi
+    
+    # Check for changes
+    if [[ "$current" != "$prev" ]]; then
+        pane_states[$pane]="running"
+        pane_stable[$pane]=0
+        pane_prev[$pane]="$current"
+    else
+        pane_stable[$pane]=$((stable + 1))
+        if [[ $stable -ge 3 ]]; then
+            pane_states[$pane]="stuck"
+        fi
+    fi
+}
+
+first=true
+
+# Process each pane
+while IFS= read -r pane; do
+    [[ -z "$pane" ]] && continue
+    
+    # Get window name and pane index
+    window=$(tmux -S "$SOCKET" display-message -t "$pane" -p '#{window_name}' 2>/dev/null || echo "unknown")
+    
+    # Check state
+    check_pane_state "$pane"
+    
+    # Get current content
+    current=$(capture_pane "$pane")
+    state="${pane_states[$pane]}"
+    
+    # Separator
+    if $first; then
+        first=false
+    else
+        echo ""
+        echo "---------"
+        echo ""
+    fi
+    
+    # Section header
+    echo "WINDOW: $window"
+    echo "STATE: $state"
+    
+    # Last lines (truncated to 400 chars)
+    last_lines=$(echo "$current" | grep -v '^$' | tail -10 || echo "")
+    if [[ ${#last_lines} -gt 400 ]]; then
+        last_lines="${last_lines:0:397}..."
+    fi
+    echo "---"
+    echo "$last_lines"
+    
+done < <(get_panes)
