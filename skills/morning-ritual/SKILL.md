@@ -38,7 +38,86 @@ Run in this order. Be fast — use parallel reads where possible.
 date +%Y-%m-%d
 ```
 
-### Step 2 — Collect Open Tasks
+### Step 2 — Query Calendar Events
+
+Query all calendar sources: local vault calendars and external ICS/CalDAV feeds.
+
+#### Part A — Local Vault Calendars (`01-Calendars`)
+
+**Important:** The Obsidian CLI's `search` command interprets `field:value` as a property filter, so search for the **date value directly** (e.g., `2026-04-30`) rather than the frontmatter key.
+
+```bash
+# Get today's date and the next 5 days
+TODAY=$(date +%Y-%m-%d)
+TOMORROW=$(date -d "+1 day" +%Y-%m-%d)
+DAY2=$(date -d "+2 days" +%Y-%m-%d)
+DAY3=$(date -d "+3 days" +%Y-%m-%d)
+DAY4=$(date -d "+4 days" +%Y-%m-%d)
+DAY5=$(date -d "+5 days" +%Y-%m-%d)
+
+# Search for event files matching each date value in the calendar folder
+obsidian search query="$TODAY" path="01-Calendars" format=json
+obsidian search query="$TOMORROW" path="01-Calendars" format=json
+obsidian search query="$DAY2" path="01-Calendars" format=json
+obsidian search query="$DAY3" path="01-Calendars" format=json
+obsidian search query="$DAY4" path="01-Calendars" format=json
+obsidian search query="$DAY5" path="01-Calendars" format=json
+```
+
+For each file found (excluding `00-index.md`), read its content to extract event details:
+
+```bash
+obsidian read path="01-Calendars/<filename>"
+```
+
+Parse the frontmatter to extract:
+- `title` — event name
+- `date` — event date (verify it matches the search date)
+- `startTime` / `endTime` — time range (if `allDay: false`)
+- `allDay` — whether it's an all-day event
+- Any additional body content (e.g., location, notes)
+
+
+
+#### Part B — External ICS/CalDAV Calendars
+
+Query Google Calendar, iCloud, or any other calendar source connected to the Full Calendar plugin:
+
+```bash
+# Option 1: Use the reusable script (recommended)
+python3 "$HOME/main_vault/.pi/skills/morning-ritual/scripts/query_calendars.py" --days 7
+
+# Option 2: Query directly via obsidian eval + Python
+obsidian eval code="JSON.stringify(app.plugins.plugins['obsidian-full-calendar'].settings.calendarSources)"
+# → Returns array of {type, url} objects. Filter for type='ical' and fetch with curl/python.
+```
+
+The script (`scripts/query_calendars.py`) automatically:
+1. Reads the calendar sources from Full Calendar plugin settings via `obsidian eval`
+2. Fetches each ICS URL using Python's `urllib` (with 10s timeout)
+3. Parses with `icalendar` library, normalizes to Europe/Berlin timezone
+4. Filters events by **actual date** — today vs upcoming
+5. Returns formatted output for today + next N days in a ready-to-embed format
+
+**Important:** The script correctly separates events into "Today" and "Upcoming" sections based on the event's actual start date (normalized to Europe/Berlin timezone). Do not manually merge or re-sort — use the structured output as-is.
+
+**Prerequisites:**
+- `pip install icalendar` (usually pre-installed)
+- Full Calendar plugin must be running with ICS sources configured
+- If `obsidian eval` fails, check that Obsidian is open and the Full Calendar plugin is loaded
+
+#### Merge Local and External Events
+
+**CRITICAL: Do NOT manually merge or re-sort event lists.** The script output is already correctly separated by date. Follow these rules:
+
+1. **Today's Events** — Only include events where the event's actual date (local or external) equals **today's date**. Never include tomorrow's events here, even if they appear in the same script output block.
+2. **Upcoming Events** — Only include events for tomorrow through Day 5. Never include today's events here.
+3. **Never cross-contaminate**: An event on Apr 30 MUST go under "Tuesday, Apr 30" in Upcoming, NEVER under "Today's Events" on Apr 29.
+4. Tag external sources if relevant: e.g., `(Google)`, `(iCloud)`.
+
+When in doubt, trust the script's date-based separation — it already groups by the event's actual start date.
+
+### Step 3 — Collect Open Tasks
 
 ```bash
 obsidian tasks todo verbose=false format=json
@@ -53,13 +132,13 @@ Group them:
 - **🏠 House & Personal**: tasks with `#haus`, `#task/haus`, from `06 - Tasks - Haus.md`
 - **📥 Inbox**: everything else from `01 - Tasks - Inbox.md` not yet categorized
 
-### Step 3 — Check for Due Today / Overdue
+### Step 4 — Check for Due Today / Overdue
 
 Scan for tasks containing today's date (format: `📅 YYYY-MM-DD`) or past dates that haven't been completed.
 
 Flag these as **⚠️ Due Today** or **🚨 Overdue**.
 
-### Step 4 — Pick the MIT (Most Important Tasks)
+### Step 5 — Pick the MIT (Most Important Tasks)
 
 Based on the collected tasks, suggest **1–5 MIT (Most Important Tasks)** for today. Use this logic:
 1. Overdue items first
@@ -69,14 +148,14 @@ Based on the collected tasks, suggest **1–5 MIT (Most Important Tasks)** for t
 
 Present these as the **"Today's Focus"** block — the 1–5 things the user should commit to finishing today.
 
-### Step 5 — Quick Stats
+### Step 6 — Quick Stats
 
 Show a brief summary:
 - Total open tasks (across all files)
 - How many are work vs personal vs creative
 - Anything overdue
 
-### Step 6 — Optional: Save Daily Briefing
+### Step 7 — Optional: Save Daily Briefing
 
 If the user asks to save/log the briefing, create a note:
 
@@ -90,6 +169,12 @@ Use today's date. Store in the vault root or wherever the user prefers.
 
 ```
 ## ☀️ Morning Briefing — [Day, Date]
+
+### 📅 Today's Events ([n events])
+- [⏰ HH:MM – HH:MM] **Event Title** — *location/notes*
+- [all-day] **Event Title** — *location/notes*
+
+---
 
 ### 🎯 Today's Focus (MIT)
 1. [Most important task]
@@ -126,10 +211,20 @@ Top items:
 
 ---
 
+### 🔜 Upcoming Events (Next 5 Days)
+**[Day, Date]**
+- [⏰ HH:MM – HH:MM] **Event Title** — *location/notes*
+
+**[Day, Date]**
+- [⏰ HH:MM – HH:MM] **Event Title** — *location/notes* (Google)
+
+---
+
 ### 📊 Stats
 - Total open: [n] tasks
 - Work: [n] | Music: [n] | Personal: [n] | Inbox: [n]
 - Overdue: [n]
+- Events this week: [n] (local: [n], external: [n])
 
 ---
 
