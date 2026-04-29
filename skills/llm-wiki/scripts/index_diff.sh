@@ -7,7 +7,7 @@ WIKI_PATH="$1"
 [ -z "$WIKI_PATH" ] && echo "Usage: $0 <wiki-directory-path>" && exit 1
 
 # Build list of all wiki files
-find "$WIKI_PATH/wiki" -name "*.md" -not -name "index.md" -not -name "00-index.md" 2>/dev/null | sort > /tmp/wiki-files.txt
+find "$WIKI_PATH/wiki" -name "*.md" -not -name "index.md" -not -name "00-index.md" -not -name "log.md" 2>/dev/null | sort > /tmp/wiki-files.txt
 
 # Extract wikilink targets from index.md (handle both [[name]] and [[name|display]])
 grep -oP '\[\[([^\]|]+)' "$WIKI_PATH/index.md" 2>/dev/null | sed 's/\[\[//' | sort -u > /tmp/index-targets.txt
