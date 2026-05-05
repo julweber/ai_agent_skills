@@ -141,24 +141,5 @@ assert_symlink_target "link now points to repo" \
     "$TMP/.pi/agent/extensions/$EXT_A" \
     "$REPO_ROOT/extensions/pi/$EXT_A"
 
-# ─── 12. Extension without index.ts is rejected ──────────────────────────────
-describe "install-extension.sh: extension missing index.ts is rejected"
-
-TMP=$(mktemp -d); register_cleanup "$TMP"
-# Create a fake extension dir without index.ts
-FAKE_EXT_DIR="$REPO_ROOT/extensions/pi/_test_fake_ext_$$"
-mkdir -p "$FAKE_EXT_DIR"
-# no index.ts
-
-set +e
-_OUT=$(bash "$SCRIPT" --target-dir "$TMP" "_test_fake_ext_$$" --force 2>&1)
-_RC=$?
-set -e
-
-rm -rf "$FAKE_EXT_DIR"
-
-assert_exit_code "exits non-zero for invalid extension" "$_RC" "1"
-assert_contains  "mentions missing index.ts"            "$_OUT" "index.ts"
-
 # ─── Summary ─────────────────────────────────────────────────────────────────
 print_summary

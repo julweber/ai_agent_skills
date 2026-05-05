@@ -8,8 +8,8 @@ source "$REPO_ROOT/tests/test_framework.sh"
 
 # ─── fixtures ────────────────────────────────────────────────────────────────
 # Pick two real skills from the repo to use in tests
-SKILL_A="brainstorming"
-SKILL_B="tmux"
+SKILL_A="dev-brainstorming"
+SKILL_B="tmux-coder"
 
 # ─── helpers ─────────────────────────────────────────────────────────────────
 run() { run_script "$SCRIPT" "$@"; }
