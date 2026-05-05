@@ -5,7 +5,7 @@ These are implemented to be used exclusively by AI agents like opencode, Claude 
 
 ## Overview
 
-This repository provides 32 specialized skills, agent configurations, and extensions for AI coding agents including opencode, Claude Code, pi, and others. Skills cover CLI tooling, file organization, system monitoring, knowledge management, infrastructure automation, and development strategy.
+This repository provides 33 specialized skills, agent configurations, and extensions for AI coding agents including opencode, Claude Code, pi, and others. Skills cover CLI tooling, file organization, system monitoring, knowledge management, infrastructure automation, and development strategy.
 
 ## Quick Start with an AI Agent
 
@@ -160,6 +160,7 @@ CLI skills for infrastructure management and CI/CD pipelines.
 | **concourse-ci** | Concourse CI/CD pipelines: pipelines, resources, jobs, worker configuration |
 | **github-actions-cicd** | GitHub Actions workflows: runners, actions, deployment strategies, best practices |
 | **github-cli** | GitHub CLI (gh): PRs, issues, repos, workflows, releases, programmatic JSON operations |
+| **docker-cli** | Expert Docker CLI reference — containers, images, buildx, compose, networking, volumes, security, multi-platform builds, and troubleshooting |
 | **terraform** | Terraform/OpenTofu: modules, testing, CI/CD, security scanning (trivy/checkov) |
 
 ### System & Productivity CLIs
