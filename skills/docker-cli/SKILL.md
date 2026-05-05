@@ -1,6 +1,7 @@
 ---
 name: docker-cli
-description: Expert Docker CLI reference — containers, images, buildx, compose, networking, volumes, security, multi-platform builds, and troubleshooting. Use this when working with docker containers. Triggers on: docker, container, image, volume, network, compose, Dockerfile, build, pull, push, registry, docker-compose, K8s migration, k3d, kind.
+description: |
+  Expert Docker CLI reference — containers, images, buildx, compose, networking, volumes, security, multi-platform builds, and troubleshooting. Use this when working with docker containers. Triggers on: docker, container, image, volume, network, compose, Dockerfile, build, pull, push, registry, docker-compose, K8s migration, k3d, kind.
 ---
 
 # Docker CLI Skill
