@@ -1,12 +1,15 @@
 ---
 name: docker-cli
-description: |
-  Expert Docker CLI reference. Use when working with containers, images, builds, or compose — including resource limits (CPU/memory/bandwidth), security profiles, healthchecks, networking, volumes/bind-mounts, and multi-platform builds via buildx/BuildKit. Triggers on: docker, container, image, volume, network, compose, Dockerfile, build, pull, push, registry, K8s migration, k3d, kind.
+description: Expert Docker CLI reference — containers, images, buildx, compose, networking, volumes, security, multi-platform builds, and troubleshooting. Use this when working with docker containers. Triggers on: docker, container, image, volume, network, compose, Dockerfile, build, pull, push, registry, docker-compose, K8s migration, k3d, kind.
 ---
 
 # Docker CLI Skill
 
 You are an expert at the `docker` and `docker-compose` CLIs — including modern BuildKit features via `buildx`. Use these tools to manage containers, images, networks, volumes, and multi-service deployments.
+
+## Reference Documents
+
+- **Full CLI cheat sheet** — `references/cheat-sheet.md` . Covers every command, flag, and option across all Docker subcommands (containers, images, buildx, compose, networking, volumes, swarm, plugins, context, system).
 
 ## Quick Reference: Most Common Commands
 
@@ -82,11 +85,50 @@ docker compose --profile dev up                           # profile-based startu
 
 **Restart policies:** `--restart=on-failure:5` | `always` | `unless-stopped` | `no` (default)
 
+## Dockerfile Best Practices
+
+### Writing efficient Dockerfiles
+
+**Multi-stage builds** — separate build environment from runtime to reduce image size:
+```dockerfile
+# Build stage
+FROM golang:1.22-bookworm AS builder
+WORKDIR /app
+COPY . .
+RUN CGO_ENABLED=0 go build -o myapp .
+
+# Runtime stage
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/myapp /usr/local/bin/myapp
+USER 1000:1000
+ENTRYPOINT ["myapp"]
+```
+
+**Layer caching strategy** — order instructions to maximize cache hits:
+- Copy `go.mod` / `package.json` / `requirements.txt` first, then `RUN install`
+- Copy application source code last (changes most frequently)
+- Use `.dockerignore` to exclude unnecessary files from the build context
+
+**.dockerignore essentials:**
+```
+.git
+.gitignore
+node_modules
+__pycache__
+*.md
+.env
+.dockerignore
+Dockerfile
+dist
+build
+```
+
 ## Build & Images: `buildx` / `image`
 
 ### Building images — modern build pipeline via `docker buildx`
 
-BuildKit offers parallel stages, cache management, multi-platform builds, and attestation.
+BuildKit offers parallel stages, cache management, multi-platform builds, and security attestations.
 
 ```bash
 # Standard build with cache
@@ -106,15 +148,33 @@ docker buildx build --platform linux/amd64,linux/arm64 -t myapp:multi . --push
 --build-arg BUILDKIT_INLINE_CACHE=1                    # enable inline caching in Dockerfile
 --secret id=mykey,src=./private_key                   # mount secrets at build time
 --ssh default                                           # expose SSH agent for private deps
+
+# Security attestations (SLSA compliance)
+--attest type=provenance,mode=max,version=v1          # build provenance metadata
+--attest type=sbom                                      # software bill of materials
+--provenance=mode=max                                   # shorthand for provenance
+--sbom                                                  # shorthand for SBOM
+
+# BuildKit advanced options
+--build-context name=base,src=../shared-library         # additional build contexts
+--target builder                                        # build to a specific stage
+--iidfile image-id.txt                                  # write image ID to file
+--metadata-file build-meta.json                         # write build metadata
 ```
 
-### Image management: `pull` / `push` / `inspect` / `prune`
+### Image management: `pull` / `push` / `inspect` / `prune` / `tag`
 
 ```bash
 docker image inspect --format='{{json .Config.Env}}' myimage    # query metadata
 docker history myimage -v                                          # layer sizes & diff
 docker save myimage:tag -o ./myimage.tar                         # export for offline use
 docker load -i myimage.tar                                       # import from archive
+
+# Tagging & pushing to registries
+docker tag myapp:latest registry.example.com/myapp:v1.2.3         # tag for registry
+docker push registry.example.com/myapp:v1.2.3                     # push specific tag
+docker push registry.example.com/myapp:v1.2.3 --all-tags          # push all tags
+docker pull registry.example.com/myapp:v1.2.3 --platform linux/amd64  # pull for specific arch
 ```
 
 ### Bake mode (YAML-based batch builds) — `buildx bake`
@@ -143,7 +203,7 @@ docker compose up --build                          # rebuild images before start
 docker compose up --force-recreate                 # recreate even if config unchanged
 
 # Scale & manage services
-docker compose scale web=3                         # (Compose V1 syntax, still works)
+docker compose up --scale web=3                    # scale a service
 docker compose ps                                  # list running services
 ```
 
@@ -156,6 +216,76 @@ docker compose ps                                  # list running services
 | `--remove-orphans` | Remove containers not in compose file |
 | `--abort-on-container-exit` | Stop all if one exits |
 | `--exit-code-from=web` | Return web service exit code on failure |
+
+### Compose service configuration patterns
+
+```yaml
+# docker-compose.yml example
+services:
+  web:
+    image: myapp:latest
+    restart: unless-stopped                                    # restart policy
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    env_file: .env                                             # external env file
+    depends_on:
+      db:
+        condition: service_healthy                             # wait for healthcheck
+    volumes:
+      - ./src:/app/src:ro                                      # bind mount
+      - data:/data                                             # named volume
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - frontend
+
+  db:
+    image: postgres:16
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password         # secret file mount
+    secrets:
+      - db_password
+    configs:
+      - postgresql.conf
+    networks:
+      - frontend
+
+volumes:
+  data:
+  pgdata:
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+
+configs:
+  postgresql.conf:
+    file: ./configs/postgresql.conf
+
+networks:
+  frontend:
+    driver: bridge
+```
 
 ## Network & Volume Management
 
@@ -181,6 +311,50 @@ docker system df                                           # disk usage by image
 docker system prune -a --volumes                         # aggressive cleanup: remove unused + volumes
 ```
 
+## Docker Exec & File Transfer
+
+```bash
+docker exec -it <container> sh                              # interactive shell
+docker exec -it -u root <container> sh                      # run as root
+docker exec -it -w /app <container> bash -c "ls -la"        # one-shot command in working dir
+docker exec -d <container> <cmd>                            # detached exec (returns immediately)
+docker exec -e MYVAR=value <container> cmd                  # pass env vars to exec
+docker exec -i -t --privileged <container> cmd              # privileged exec
+
+# Copy files to/from containers
+docker cp <container>:/path/to/file ./local_file            # extract from container
+docker cp ./local_file <container>:/path/to/dest            # inject into container
+docker cp -a <container>:/path ./local_dir                  # preserve uid/gid info
+docker cp -L ./src <container>:/dest                        # follow symlinks
+```
+
+## Docker Secrets & Configs
+
+> **Note:** `docker secret` and `docker config` are Swarm cluster management commands — run on a manager node.
+
+```bash
+# Secrets (sensitive data: passwords, keys, certs)
+docker secret create mydb-pass ./password.txt               # create from file
+docker secret ls                                            # list secrets
+docker secret inspect mydb-pass                             # inspect details
+docker secret rm mydb-pass                                  # remove secret
+
+# Configs (non-sensitive configuration: nginx.conf, app.yaml)
+docker config create nginx-conf ./nginx.conf                # create from file
+docker config ls                                            # list configs
+docker config inspect nginx-conf                            # inspect details
+docker config rm nginx-conf                                 # remove config
+
+# In docker-compose.yml:
+services:
+  app:
+    secrets:
+      - mydb-pass
+      source: mydb-pass                                    # map to container secret
+    configs:
+      - nginx-conf
+```
+
 ## Common Patterns & Gotchas
 
 1. **`--detach-keys`** — Override Ctrl+C escape sequence to avoid conflicting with your editor (e.g., `Ctrl+q q`)
@@ -188,3 +362,56 @@ docker system prune -a --volumes                         # aggressive cleanup: r
 3. **`docker exec -d`** runs detached and returns immediately, useful for background tasks in a running container
 4. **Build cache sharing** via `buildx bake` is more efficient than repeated single-image builds
 5. **Profile-based compose** (`--profile`) enables environment-specific service activation (dev/test/prod)
+6. **Device I/O limits** (`--device-read-bps`, `--device-write-iops`) require host device access and may not work on all configurations (e.g., containers without direct device access)
+
+## Troubleshooting
+
+### Container OOM Killed
+```bash
+docker inspect --format='{{.State.OOMKilled}}' <container>   # check if OOM
+docker logs --tail 50 <container>                            # check for OOM messages
+# Fix: increase --memory limit or optimize container memory usage
+```
+
+### Port Already in Use
+```bash
+ss -tlnp | grep :80                                          # find what's using the port
+# Fix: use a different host port (-p 8080:80) or stop the conflicting service
+```
+
+### Bind Mount Permission Denied
+```bash
+ls -la /host/path                                           # check host permissions
+docker inspect --format='{{.Mounts}}' <container>           # verify mount config
+# Fix: chown/chmod host path, or use :ro and verify user context
+```
+
+### Image Pull Rate Limited
+```
+Error: toomanyrequests: You have reached your pull rate limit.
+```
+```bash
+# Fix: authenticate with Docker Hub
+docker login                                                # or use a private registry
+# Free accounts: 200 pulls/6h; Anonymous: 100 pulls/6h
+```
+
+### Container Won't Start — Check Why
+```bash
+docker ps -a | grep <name>                                  # see exit code
+docker inspect --format='{{.State.ExitCode}}' <container>   # exit code
+docker logs <container>                                     # container logs
+docker events --filter 'container=<name>' --since 10m       # recent events
+```
+
+### Common Exit Codes
+| Code | Meaning |
+|------|---------|
+| 1    | Application error |
+| 125  | Docker daemon error |
+| 126  | Command not executable |
+| 127  | Command not found |
+| 134  | Abnormal termination (e.g., SIGABRT) |
+| 137  | SIGKILL (often OOM kill) |
+| 139  | Segmentation fault |
+| 143  | SIGTERM (graceful shutdown) |
