@@ -72,7 +72,7 @@ Source can be a **file path**, **directory path**, or **URL**.
 
 **Workflow** (follow `references/ingestion-workflow.md` for details):
 
-1. **Resolve source**: Convert URL to local markdown file in `raw/`. For directories, recursively find all `.md` files. Skip files with `ingested-at` in frontmatter.
+1. **Resolve source**: Convert URL to local markdown file in `raw/`. For directories, recursively find all `.md` files. **Skip files with `ingested-at` in frontmatter** (they are already ingested). **Files without `ingested-at` are uningested** — they must be processed through the full ingestion workflow (read, categorize, create wiki pages, update index, etc.), NOT just timestamped.
 2. **Survey**: Read the wiki's `index.md` and list all existing files in `wiki/` subdirectories.
 3. **Read source**: Extract key information from the source.
 4. **Categorize**: Match content against SCHEMA.md taxonomy. If content doesn't fit any category, flag for review (do NOT guess).
@@ -103,26 +103,28 @@ Source can be a **file path**, **directory path**, or **URL**.
 
 Run health checks and auto-fix issues.
 
+**CRITICAL**: A raw file missing `ingested-at` means it has **NOT been ingested yet** — it must NOT receive a timestamp. Timestamps are only added as the final step of the ingestion process. Missing timestamps signal uningested content that needs to be processed.
+
 **Workflow** (follow `references/health-check-workflow.md` for details):
 
 1. **Run scan scripts** (in `scripts/`):
    - `scripts/scan_tags.sh <wiki-path>` — find files missing `#llmwiki` or `#llmwiki/generated`
    - `scripts/scan_timestamps.sh <wiki-path>` — find raw files missing `ingested-at`
    - `scripts/index_diff.sh <wiki-path>` — compare wiki files against index entries
-2. **Auto-fix structural issues**:
+2. **Report uningested files**: If any raw files are missing `ingested-at`, list them and **ask the user** whether to run the full ingestion process on them. **Do NOT auto-add timestamps.**
+3. **Auto-fix structural issues**:
    - Add missing `#llmwiki` tags to wiki files
    - Add missing `#llmwiki/generated` tags to LLM-generated wiki files
-   - Add `ingested-at: YYYY-MM-DD` to raw files missing timestamps
    - Add missing files to `index.md` and sub-indexes
    - Remove stale `index.md` entries pointing to non-existent files
    - Fix sub-index mismatches
-3. **Flag for review**:
+4. **Flag for review**:
    - Index entries with missing descriptions
    - Pages that may be in wrong categories
    - Schema taxonomy gaps (concepts mentioned but not covered)
-4. **Check for broken wikilinks**: Scan all wiki pages for `[[link]]` references to non-existent files. Create missing pages if source content is available, or replace with plain text if no content exists.
-5. **Log**: Append to `log.md` with format `## [YYYY-MM-DD] heal | Health check completed — <summary of fixes>`.
-6. **Report**: Concise summary — issues found, auto-fixed, and flagged for review.
+5. **Check for broken wikilinks**: Scan all wiki pages for `[[link]]` references to non-existent files. Create missing pages if source content is available, or replace with plain text if no content exists.
+6. **Log**: Append to `log.md` with format `## [YYYY-MM-DD] heal | Health check completed — <summary of fixes>`.
+7. **Report**: Concise summary — issues found, auto-fixed, and flagged for review.
 
 ### `/llm-wiki query <wiki-name> <question>`
 
@@ -180,7 +182,8 @@ Review schema taxonomy gaps.
 - Report concise summaries
 
 **Never**:
-- Modify files in `raw/` (except adding `ingested-at` to frontmatter)
+- Modify files in `raw/` (except adding `ingested-at` to frontmatter **during active ingestion of that file**)
+- Add `ingested-at` to uningested files as a "fix" — this is a data integrity violation. Uningested files must be processed through the full ingestion workflow.
 - Guess category placement — flag for review instead
 - Create broken wikilinks — create the target page or use plain text
 - Skip index updates
