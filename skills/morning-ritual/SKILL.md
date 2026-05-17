@@ -22,8 +22,12 @@ Activate when the user says things like:
 | ------------------| --------------------|
 | **Vault path**   | `$HOME/main_vault` |
 | **Obsidian CLI** | `obsidian`         |
-- **Main Task directory**:
-  - `00-Tasks/*.md` — categorized task definitions
+
+## Directory Structure
+
+The vault should have:
+- **`00-Tasks/*.md`** — categorized task definitions
+- **`01-Calendars/*.md`** — date-tagged calendar event files
 
 ## The Morning Ritual Workflow
 Run in this order. Be fast — use parallel reads where possible.
@@ -31,6 +35,8 @@ Run in this order. Be fast — use parallel reads where possible.
 ### Step 0 - Load Obsidian CLI Skills first
 - If you have the `obsidian-cli` agent skill: load the `obsidian-cli` skill
 - If you have the `obsidian-master` agent skill: load the `obsidian-master` skill
+
+**Note:** This skill no longer requires the obsidian skill to be loaded — it includes a file-based fallback using `grep`/`find` when the obsidian CLI is unavailable.
 
 ### Step 1 - Get current date
 
@@ -40,82 +46,31 @@ date +%Y-%m-%d
 
 ### Step 2 — Query Calendar Events
 
-Query all calendar sources: local vault calendars and external ICS/CalDAV feeds.
-
-#### Part A — Local Vault Calendars (`01-Calendars`)
-
-**Important:** The Obsidian CLI's `search` command interprets `field:value` as a property filter, so search for the **date value directly** (e.g., `2026-04-30`) rather than the frontmatter key.
+Use the consolidated script to query both local vault calendars and external ICS/CalDAV feeds in one pass:
 
 ```bash
-# Get today's date and the next 5 days
-TODAY=$(date +%Y-%m-%d)
-TOMORROW=$(date -d "+1 day" +%Y-%m-%d)
-DAY2=$(date -d "+2 days" +%Y-%m-%d)
-DAY3=$(date -d "+3 days" +%Y-%m-%d)
-DAY4=$(date -d "+4 days" +%Y-%m-%d)
-DAY5=$(date -d "+5 days" +%Y-%m-%d)
-
-# Search for event files matching each date value in the calendar folder
-obsidian search query="$TODAY" path="01-Calendars" format=json
-obsidian search query="$TOMORROW" path="01-Calendars" format=json
-obsidian search query="$DAY2" path="01-Calendars" format=json
-obsidian search query="$DAY3" path="01-Calendars" format=json
-obsidian search query="$DAY4" path="01-Calendars" format=json
-obsidian search query="$DAY5" path="01-Calendars" format=json
+# Run the consolidated calendar query script
+python3 "$HOME/main_vault/.pi/skills/morning-ritual/scripts/query_calendars.py" --days 6
 ```
 
-For each file found (excluding `00-index.md`), read its content to extract event details:
+**Script features:**
+- Queries local vault calendars via obsidian CLI **or** file-based grep fallback
+- Fetches external ICS URLs from Full Calendar plugin settings
+- Parses and normalizes all events to Europe/Berlin timezone
+- Separates into "today" vs "upcoming" sections
+- Returns structured output ready for embedding
 
+**Modes:**
 ```bash
-obsidian read path="01-Calendars/<filename>"
+# Auto-detect (try obsidian, fallback to file-based)
+python3 query_calendars.py --mode auto
+
+# Local-only (no obsidian required)
+python3 query_calendars.py --mode local
+
+# External-only (requires obsidian for plugin access)
+python3 query_calendars.py --mode external
 ```
-
-Parse the frontmatter to extract:
-- `title` — event name
-- `date` — event date (verify it matches the search date)
-- `startTime` / `endTime` — time range (if `allDay: false`)
-- `allDay` — whether it's an all-day event
-- Any additional body content (e.g., location, notes)
-
-
-
-#### Part B — External ICS/CalDAV Calendars
-
-Query Google Calendar, iCloud, or any other calendar source connected to the Full Calendar plugin:
-
-```bash
-# Option 1: Use the reusable script (recommended)
-python3 "$HOME/main_vault/.pi/skills/morning-ritual/scripts/query_calendars.py" --days 7
-
-# Option 2: Query directly via obsidian eval + Python
-obsidian eval code="JSON.stringify(app.plugins.plugins['obsidian-full-calendar'].settings.calendarSources)"
-# → Returns array of {type, url} objects. Filter for type='ical' and fetch with curl/python.
-```
-
-The script (`scripts/query_calendars.py`) automatically:
-1. Reads the calendar sources from Full Calendar plugin settings via `obsidian eval`
-2. Fetches each ICS URL using Python's `urllib` (with 10s timeout)
-3. Parses with `icalendar` library, normalizes to Europe/Berlin timezone
-4. Filters events by **actual date** — today vs upcoming
-5. Returns formatted output for today + next N days in a ready-to-embed format
-
-**Important:** The script correctly separates events into "Today" and "Upcoming" sections based on the event's actual start date (normalized to Europe/Berlin timezone). Do not manually merge or re-sort — use the structured output as-is.
-
-**Prerequisites:**
-- `pip install icalendar` (usually pre-installed)
-- Full Calendar plugin must be running with ICS sources configured
-- If `obsidian eval` fails, check that Obsidian is open and the Full Calendar plugin is loaded
-
-#### Merge Local and External Events
-
-**CRITICAL: Do NOT manually merge or re-sort event lists.** The script output is already correctly separated by date. Follow these rules:
-
-1. **Today's Events** — Only include events where the event's actual date (local or external) equals **today's date**. Never include tomorrow's events here, even if they appear in the same script output block.
-2. **Upcoming Events** — Only include events for tomorrow through Day 5. Never include today's events here.
-3. **Never cross-contaminate**: An event on Apr 30 MUST go under "Tuesday, Apr 30" in Upcoming, NEVER under "Today's Events" on Apr 29.
-4. Tag external sources if relevant: e.g., `(Google)`, `(iCloud)`.
-
-When in doubt, trust the script's date-based separation — it already groups by the event's actual start date.
 
 ### Step 3 — Collect Open Tasks
 
@@ -292,6 +247,22 @@ The `gtd-assistant` will return a more detailed report including:
 - GTD analysis insights on consolidation opportunities
 - Pattern recognition across the vault
 
+## Troubleshooting
+
+### Obsidian CLI Not Available
+If you see `[⚠️ Obsidian CLI not found — using file-based fallback]`:
+- The script will automatically use `grep`/`find` to scan markdown files
+- Local calendar files must contain date strings like `2026-05-16`
+- External calendar queries require obsidian CLI for Full Calendar plugin access
+
+### External Calendar Events Not Showing
+- Ensure Obsidian is running with the Full Calendar plugin loaded
+- Check that ICS sources are configured in plugin settings
+- Verify network connectivity to calendar URLs
+
+### Script Dependencies
+- `icalendar` package: `pip install icalendar`
+- Python 3.9+ required for `zoneinfo` module
 
 ## Performance Notes
 
