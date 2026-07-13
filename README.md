@@ -5,7 +5,7 @@ These are implemented to be used exclusively by AI agents like opencode, Claude 
 
 ## Overview
 
-This repository provides 33 specialized skills, agent configurations, and extensions for AI coding agents including opencode, Claude Code, pi, and others. Skills cover CLI tooling, file organization, system monitoring, knowledge management, infrastructure automation, and development strategy.
+This repository provides agent configurations, extensions, and specialized skills for AI coding agents including opencode, Claude Code, pi, and others. Skills cover CLI tooling, file organization, system monitoring, knowledge management, infrastructure automation, and development strategy.
 
 ## Quick Start with an AI Agent
 
@@ -139,7 +139,7 @@ The repository is organized into logical sections for different agent capabiliti
 
 ## Available Skills
 
-The repository contains 32 specialized skills organized by domain:
+The repository contains skills organized by domain:
 
 ### Coding Agent CLIs
 These skills provide expert control over specific coding agent CLI tools.
@@ -150,6 +150,7 @@ These skills provide expert control over specific coding agent CLI tools.
 | **codex-cli** | Codex CLI expert: exec, review, login/logout, MCP server management, sandbox modes |
 | **opencode-cli** | Expert opencode CLI: TUI, server, web UI, sessions, providers, agents, models, import/export |
 | **pi-cli** | Pi coding agent CLI: launch sessions, manage extensions/packages, switch models, configure tools |
+| **herdr-cli** | herdr terminal workspace manager: orchestrate AI coding agents in persistent terminal sessions via UNIX socket |
 
 ### Infrastructure & DevOps CLIs
 CLI skills for infrastructure management and CI/CD pipelines.
