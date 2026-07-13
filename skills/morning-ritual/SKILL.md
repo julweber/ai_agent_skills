@@ -84,7 +84,7 @@ Group them:
 - **🔥 Urgent / High Priority**: tasks with `⏫` or `🔺` or `#urgent` or overdue dates
 - **💼 Work**: tasks with `#work`, `#task/work`, or from `10 - Tasks - Beruflich.md`
 - **🎵 Music & Creative**: tasks with `#music`, from `07 - Tasks - Music.md`
-- **🏠 House & Personal**: tasks with `#haus`, `#task/haus`, from `06 - Tasks - Haus.md`
+- **🏠 Personal**: tasks with `#privat`, `#haus`, `#task/haus`, from `06 - Tasks - Privat.md`
 - **📥 Inbox**: everything else from `01 - Tasks - Inbox.md` not yet categorized
 
 ### Step 4 — Check for Due Today / Overdue
