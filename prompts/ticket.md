@@ -2,7 +2,6 @@
 description: Generate implementation tickets from spec or chat context
 argument-hint: "[<file-path> | --from-chat]"
 ---
-
 Generate implementation tickets compatible with the `ticket-implement` chain.
 
 ## Input Source
@@ -10,6 +9,22 @@ Generate implementation tickets compatible with the `ticket-implement` chain.
 Choose one:
 1. **File**: If a path is provided (e.g., `/ticket path/to/spec.md`), read it as the source.
 2. **Chat history**: If no path or `--from-chat` is given, analyze the current conversation for requirements discussed.
+
+## First Step
+
+${1:+
+**🔴 CRITICAL — READ THIS FILE FIRST:**
+
+Use the `read` tool to read the file at: **`$1`**
+
+Do NOT generate tickets until you have read the file. The file contains the spec you need to generate tickets from.
+
+After reading the file, proceed with generating tickets based on its contents.
+}
+
+${1:-
+**No file path provided.** Analyze the current conversation for requirements and generate tickets from chat context.
+}
 
 ## Ticket Format
 
